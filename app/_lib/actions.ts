@@ -1,11 +1,22 @@
 'use server';
 
 import { sdk } from '@sovereignfs/sdk';
-import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, like } from 'drizzle-orm';
 import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 import { randomUUID } from 'node:crypto';
-import { shopperListItems, shopperListShares, shopperLists, shopperUserState } from '../_db/schema';
-import type { CombinedItemRow, ListRow, SharedListRow } from './types';
+import {
+  shopperListItems,
+  shopperListShares,
+  shopperLists,
+  shopperProducts,
+  shopperUserState,
+} from '../_db/schema';
+import type { CombinedItemRow, ListItemRow, ListRow, ProductSuggestion, SharedListRow } from './types';
+
+/** Trimmed, lowercased form used for catalog dedupe/matching (SHP-04). */
+function normalize(name: string): string {
+  return name.trim().toLowerCase();
+}
 
 // DrizzleClient is typed as `unknown` in the SDK (dialect-agnostic contract).
 // We cast to the SQLite type here since the platform default dialect is SQLite.
@@ -31,6 +42,7 @@ function toListRow(row: typeof shopperLists.$inferSelect, role: ListRow['role'])
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     role,
+    ownerUserId: row.ownerUserId,
   };
 }
 
@@ -238,4 +250,142 @@ export async function archiveList(listId: string): Promise<void> {
         eq(shopperLists.ownerUserId, userId),
       ),
     );
+}
+
+/** Items on a list, in manual order (SHP-04/06/07/08). Access-checked —
+ *  returns [] rather than throwing if the caller can't see the list, so a
+ *  page render never has to special-case "list not found" twice. */
+export async function getListItems(listId: string): Promise<ListItemRow[]> {
+  const list = await getList(listId);
+  if (!list) return [];
+
+  const { db, tenantId } = await getContext();
+  const rows = await db
+    .select()
+    .from(shopperListItems)
+    .where(and(eq(shopperListItems.listId, listId), eq(shopperListItems.tenantId, tenantId)))
+    .orderBy(asc(shopperListItems.sortOrder), asc(shopperListItems.createdAt));
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    quantity: row.quantity,
+    unit: row.unit,
+    category: row.category,
+    icon: row.icon,
+    checkedAt: row.checkedAt,
+    sortOrder: row.sortOrder,
+  }));
+}
+
+/** Type-ahead suggestions for the add-item bar (SHP-04) — matches against
+ *  the *list owner's* catalog, not the acting user's, so an editor
+ *  contributing to someone else's list sees (and adds to) that owner's
+ *  remembered products. Simple prefix/contains + recency ranking; learned
+ *  frequency ranking is v0.3 (T-23), not Phase 1. */
+export async function searchListSuggestions(
+  listId: string,
+  query: string,
+): Promise<ProductSuggestion[]> {
+  const list = await getList(listId);
+  if (!list) return [];
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  const { db, tenantId } = await getContext();
+  const rows = await db
+    .select()
+    .from(shopperProducts)
+    .where(
+      and(
+        eq(shopperProducts.tenantId, tenantId),
+        eq(shopperProducts.ownerUserId, list.ownerUserId),
+        like(shopperProducts.normalizedName, `%${normalize(trimmed)}%`),
+      ),
+    )
+    .orderBy(asc(shopperProducts.name))
+    .limit(8);
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    icon: row.icon,
+    defaultUnit: row.defaultUnit,
+  }));
+}
+
+/** Quick-add (SHP-04): finds or creates a catalog product scoped to the
+ *  list's owner, then adds it to the list. Editors can add (they can write
+ *  to a list they were given editor access to); viewers cannot — mirrors
+ *  the read-only rule already applied to rename/archive. */
+export async function addItemToList(listId: string, name: string): Promise<void> {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error('Item name is required.');
+
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role === 'viewer') throw new Error("You don't have permission to edit this list.");
+
+  const { db, userId, tenantId } = await getContext();
+  const normalized = normalize(trimmed);
+  const ts = now();
+
+  const [existingProduct] = await db
+    .select()
+    .from(shopperProducts)
+    .where(
+      and(
+        eq(shopperProducts.tenantId, tenantId),
+        eq(shopperProducts.ownerUserId, list.ownerUserId),
+        eq(shopperProducts.normalizedName, normalized),
+      ),
+    )
+    .limit(1);
+
+  const product =
+    existingProduct ??
+    (await (async () => {
+      const id = randomUUID();
+      await db.insert(shopperProducts).values({
+        id,
+        tenantId,
+        ownerUserId: list.ownerUserId,
+        name: trimmed,
+        normalizedName: normalized,
+        createdBy: userId,
+        createdAt: ts,
+        updatedAt: ts,
+      });
+      return {
+        id,
+        name: trimmed,
+        category: null as string | null,
+        icon: null as string | null,
+        defaultUnit: null as string | null,
+      };
+    })());
+
+  const [lastItem] = await db
+    .select({ sortOrder: shopperListItems.sortOrder })
+    .from(shopperListItems)
+    .where(eq(shopperListItems.listId, listId))
+    .orderBy(desc(shopperListItems.sortOrder))
+    .limit(1);
+  const nextSortOrder = (lastItem?.sortOrder ?? -1) + 1;
+
+  await db.insert(shopperListItems).values({
+    id: randomUUID(),
+    tenantId,
+    listId,
+    productId: product.id,
+    name: product.name,
+    quantity: '1',
+    unit: product.defaultUnit,
+    category: product.category,
+    icon: product.icon,
+    sortOrder: nextSortOrder,
+    addedBy: userId,
+    createdAt: ts,
+  });
 }

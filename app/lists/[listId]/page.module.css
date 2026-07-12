@@ -2,8 +2,40 @@
   padding: var(--sv-space-6);
 }
 
-.placeholder {
-  margin-top: var(--sv-space-4);
-  color: var(--sv-color-text-muted);
+.addBar {
+  max-width: 480px;
+  margin: var(--sv-space-4) 0;
+}
+
+.items {
+  list-style: none;
+  margin: var(--sv-space-4) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--sv-color-border);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--sv-space-3);
+  padding: var(--sv-space-3) 0;
+  border-bottom: 1px solid var(--sv-color-border);
+}
+
+.itemIcon {
+  flex-shrink: 0;
+  font-size: var(--sv-font-size-md);
+}
+
+.itemName {
+  flex: 1;
+  min-width: 0;
   font-size: var(--sv-font-size-sm);
+  color: var(--sv-color-text-primary);
+}
+
+.itemQuantity {
+  flex-shrink: 0;
+  font-size: var(--sv-font-size-sm);
+  color: var(--sv-color-text-muted);
 }

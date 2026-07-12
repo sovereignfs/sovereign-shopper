@@ -9,6 +9,32 @@ export interface ListRow {
    *  returned by getLists(); 'editor'/'viewer' only appears on a list
    *  fetched via getList() when it was shared rather than owned. */
   role: 'owner' | 'editor' | 'viewer';
+  /** Always the list's actual owner, regardless of the current user's role —
+   *  the product catalog (SHP-04) is scoped to this id, not the acting
+   *  user's, so an editor's suggestions/adds contribute to the owner's
+   *  catalog. */
+  ownerUserId: string;
+}
+
+/** A row from the SHP-04 add-item suggestion dropdown. */
+export interface ProductSuggestion {
+  id: string;
+  name: string;
+  category: string | null;
+  icon: string | null;
+  defaultUnit: string | null;
+}
+
+/** One item on a list (SHP-04/06/07/08). */
+export interface ListItemRow {
+  id: string;
+  name: string;
+  quantity: string;
+  unit: string | null;
+  category: string | null;
+  icon: string | null;
+  checkedAt: number | null;
+  sortOrder: number;
 }
 
 /** A list shared with the current user by someone else (SHP-02). */

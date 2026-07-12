@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
-import { PageHeader } from '@sovereignfs/ui';
-import { getList, setLastList } from '../../_lib/actions';
+import { EmptyState, PageHeader } from '@sovereignfs/ui';
+import { getList, getListItems, setLastList } from '../../_lib/actions';
+import AddItemBar from '../../_components/AddItemBar';
 import ListHeaderActions from '../../_components/ListHeaderActions';
 import styles from './page.module.css';
 
@@ -9,11 +10,12 @@ interface Props {
 }
 
 /**
- * List detail. Phase 1 (T-02/T-03) ships the header + rename/archive (owner
- * only) here — the item ledger (add/edit/check-off, T-05–T-09) lands in
- * later tasks. Accessible to a shared editor/viewer too (SHP-02), just
- * without the owner-only controls. Records itself as the last-opened list
- * (SHP-03) on every visit, so `/shopper` redirects back here next time.
+ * List detail. Header + rename/archive (owner only, T-02/T-03), the add-item
+ * bar and items themselves (SHP-04, T-05). Tap-to-buy, reorder, and
+ * group-by-category are T-08/T-09 — items render as a flat, non-interactive
+ * list for now. Accessible to a shared editor/viewer too (SHP-02); viewers
+ * don't get the add-item bar or owner-only controls. Records itself as the
+ * last-opened list (SHP-03) on every visit.
  */
 export default async function ListDetailPage({ params }: Props) {
   const { listId } = await params;
@@ -21,6 +23,7 @@ export default async function ListDetailPage({ params }: Props) {
   if (!list) notFound();
 
   await setLastList(listId);
+  const items = await getListItems(listId);
 
   return (
     <div className={styles.page}>
@@ -28,9 +31,36 @@ export default async function ListDetailPage({ params }: Props) {
         title={list.name}
         action={list.role === 'owner' ? <ListHeaderActions list={list} /> : undefined}
       />
-      <p className={styles.placeholder}>
-        Items are coming in a future update — for now this list just holds a name.
-      </p>
+
+      {list.role !== 'viewer' && (
+        <div className={styles.addBar}>
+          <AddItemBar listId={listId} />
+        </div>
+      )}
+
+      {items.length === 0 ? (
+        <EmptyState
+          heading="No items yet"
+          description={
+            list.role === 'viewer'
+              ? "This list doesn't have any items yet."
+              : 'Add an item above to get started.'
+          }
+        />
+      ) : (
+        <ul className={styles.items}>
+          {items.map((item) => (
+            <li key={item.id} className={styles.item}>
+              {item.icon && <span className={styles.itemIcon}>{item.icon}</span>}
+              <span className={styles.itemName}>{item.name}</span>
+              <span className={styles.itemQuantity}>
+                {item.quantity}
+                {item.unit ? ` ${item.unit}` : ''}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
