@@ -117,3 +117,66 @@
   margin-top: var(--sv-space-2);
   padding: var(--sv-space-2) var(--sv-space-3);
 }
+
+.emptyHint {
+  margin: 0;
+  padding: 0 var(--sv-space-4) var(--sv-space-2);
+  font-size: var(--sv-font-size-sm);
+  font-style: italic;
+  color: var(--sv-color-text-subtle);
+}
+
+/* Shared-list rows stack a name + "shared by / role" line, unlike the
+   single-line owned-list rows above — overrides .link's nowrap/ellipsis. */
+.sharedName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sharedMeta {
+  display: block;
+  font-size: var(--sv-font-size-xs);
+  font-weight: 400;
+  color: var(--sv-color-text-subtle);
+}
+
+.divider {
+  margin: var(--sv-space-2) var(--sv-space-4);
+  border-top: 1px solid var(--sv-color-border);
+}
+
+.combinedLink,
+.combinedDisabled {
+  display: flex;
+  flex-direction: column;
+  margin: 0 var(--sv-space-3);
+  padding: var(--sv-space-2) var(--sv-space-2);
+  border-radius: var(--sv-radius-md);
+  font-size: var(--sv-font-size-sm);
+  font-weight: 600;
+}
+
+.combinedLink {
+  color: var(--sv-color-text-primary);
+  text-decoration: none;
+}
+
+.combinedLink:hover {
+  background: var(--sv-color-surface-sunken);
+}
+
+.combinedLinkActive {
+  background: var(--sv-color-accent-subtle);
+}
+
+.combinedDisabled {
+  color: var(--sv-color-text-muted);
+}
+
+.combinedHint {
+  font-size: var(--sv-font-size-xs);
+  font-weight: 400;
+  color: var(--sv-color-text-subtle);
+}

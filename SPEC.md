@@ -561,8 +561,8 @@ Summary of sequencing:
    the runtime should standardize for `sdk.events`.
 4. **Item icon source (Phase 1).** Curated icon set + category fallback
    (recommendation) is sufficient until AI generation (v0.6) lands.
-5. **Combined view (SHP-02).** Read-only roll-up in Phase 1 (recommendation);
-   editable combined view is deferred.
+5. **Combined view (SHP-02).** ✅ Resolved (T-03) — read-only roll-up in
+   Phase 1; editable combined view is deferred.
 6. **Ledger generalization.** Keep `shopper_purchases` grocery-agnostic so the
    standalone ledger app can build on it without a breaking migration.
    Confirm no grocery-specific columns leak in.

@@ -9,8 +9,10 @@ interface Props {
 }
 
 /**
- * List detail. Phase 1 (T-02) only ships the header + rename/archive here —
- * the item ledger (add/edit/check-off, T-05–T-09) lands in later tasks.
+ * List detail. Phase 1 (T-02/T-03) ships the header + rename/archive (owner
+ * only) here — the item ledger (add/edit/check-off, T-05–T-09) lands in
+ * later tasks. Accessible to a shared editor/viewer too (SHP-02), just
+ * without the owner-only controls.
  */
 export default async function ListDetailPage({ params }: Props) {
   const { listId } = await params;
@@ -19,7 +21,10 @@ export default async function ListDetailPage({ params }: Props) {
 
   return (
     <div className={styles.page}>
-      <PageHeader title={list.name} action={<ListHeaderActions list={list} />} />
+      <PageHeader
+        title={list.name}
+        action={list.role === 'owner' ? <ListHeaderActions list={list} /> : undefined}
+      />
       <p className={styles.placeholder}>
         Items are coming in a future update — for now this list just holds a name.
       </p>

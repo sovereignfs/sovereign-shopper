@@ -5,16 +5,20 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { archiveList, renameList } from '../_lib/actions';
-import type { ListRow } from '../_lib/types';
+import type { ListRow, SharedListRow } from '../_lib/types';
 import CreateListForm from './CreateListForm';
 import styles from './Sidebar.module.css';
 
 interface Props {
   lists: ListRow[];
+  sharedLists: SharedListRow[];
 }
 
-export default function Sidebar({ lists }: Props) {
+export default function Sidebar({ lists, sharedLists }: Props) {
   const pathname = usePathname();
+  const accessibleCount = lists.length + sharedLists.length;
+  const combinedHref = '/shopper/combined';
+  const combinedActive = pathname === combinedHref;
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
@@ -120,6 +124,54 @@ export default function Sidebar({ lists }: Props) {
       <div className={styles.newListRow}>
         <CreateListForm variant="inline" />
       </div>
+
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionLabel}>Shared with me</span>
+      </div>
+
+      {sharedLists.length === 0 ? (
+        <p className={styles.emptyHint}>Nothing shared with you yet</p>
+      ) : (
+        <ul className={styles.list}>
+          {sharedLists.map((list) => {
+            const href = `/shopper/lists/${list.id}`;
+            const active = pathname === href;
+            return (
+              <li key={list.id} className={styles.item}>
+                <Link
+                  href={href}
+                  className={active ? `${styles.link} ${styles.linkActive}` : styles.link}
+                >
+                  <span className={styles.sharedName}>{list.name}</span>
+                  <span className={styles.sharedMeta}>
+                    Shared by {list.ownerName} · {list.role === 'editor' ? 'Can edit' : 'Can view'}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <div className={styles.divider} />
+
+      {accessibleCount >= 2 ? (
+        <Link
+          href={combinedHref}
+          className={
+            combinedActive
+              ? `${styles.combinedLink} ${styles.combinedLinkActive}`
+              : styles.combinedLink
+          }
+        >
+          Combined view
+        </Link>
+      ) : (
+        <div className={styles.combinedDisabled}>
+          <span>Combined view</span>
+          <span className={styles.combinedHint}>Available once you have 2+ lists</span>
+        </div>
+      )}
 
       <ConfirmDialog
         open={archiveTarget !== null}
