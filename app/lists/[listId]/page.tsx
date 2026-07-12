@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
-import { EmptyState, PageHeader } from '@sovereignfs/ui';
+import { EmptyState, Icon, PageHeader } from '@sovereignfs/ui';
 import { getList, getListItems, setLastList } from '../../_lib/actions';
+import { resolveIcon } from '../../_lib/icons';
 import AddItemBar from '../../_components/AddItemBar';
 import ListHeaderActions from '../../_components/ListHeaderActions';
 import styles from './page.module.css';
@@ -51,7 +52,9 @@ export default async function ListDetailPage({ params }: Props) {
         <ul className={styles.items}>
           {items.map((item) => (
             <li key={item.id} className={styles.item}>
-              {item.icon && <span className={styles.itemIcon}>{item.icon}</span>}
+              <span className={styles.itemIcon}>
+                <Icon name={resolveIcon(item.icon, item.category)} size="md" aria-hidden />
+              </span>
               <span className={styles.itemName}>{item.name}</span>
               <span className={styles.itemQuantity}>
                 {item.quantity}

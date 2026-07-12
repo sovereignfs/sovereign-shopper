@@ -23,8 +23,10 @@
 }
 
 .itemIcon {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
-  font-size: var(--sv-font-size-md);
+  color: var(--sv-color-text-muted);
 }
 
 .itemName {

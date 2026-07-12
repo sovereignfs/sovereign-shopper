@@ -559,8 +559,9 @@ Summary of sequencing:
    object-store backend for `sdk.storage`.
 3. **Realtime transport.** SSE vs. WebSocket vs. polling for v1, and which
    the runtime should standardize for `sdk.events`.
-4. **Item icon source (Phase 1).** Curated icon set + category fallback
-   (recommendation) is sufficient until AI generation (v0.6) lands.
+4. **Item icon source (Phase 1).** ✅ Resolved (T-06) — real curated Lucide
+   SVG icons via `@sovereignfs/ui`'s `IconPicker` (not emoji), with a
+   category-mapped fallback; sufficient until AI generation (v0.6) lands.
 5. **Combined view (SHP-02).** ✅ Resolved (T-03) — read-only roll-up in
    Phase 1; editable combined view is deferred.
 6. **Ledger generalization.** Keep `shopper_purchases` grocery-agnostic so the

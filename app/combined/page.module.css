@@ -47,6 +47,13 @@
   border-bottom: 1px solid var(--sv-color-border);
 }
 
+.itemIcon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--sv-color-text-muted);
+}
+
 .itemName {
   flex: 1;
   min-width: 0;

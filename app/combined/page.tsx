@@ -1,5 +1,6 @@
-import { EmptyState, PageHeader } from '@sovereignfs/ui';
+import { EmptyState, Icon, PageHeader } from '@sovereignfs/ui';
 import { getCombinedItems } from '../_lib/actions';
+import { resolveIcon } from '../_lib/icons';
 import styles from './page.module.css';
 
 /**
@@ -41,6 +42,9 @@ export default async function CombinedViewPage() {
               <ul className={styles.itemList}>
                 {categoryItems.map((item) => (
                   <li key={item.id} className={styles.item}>
+                    <span className={styles.itemIcon}>
+                      <Icon name={resolveIcon(item.icon, item.category)} size="md" aria-hidden />
+                    </span>
                     <span className={styles.itemName}>{item.name}</span>
                     <span className={styles.sourceTag}>{item.sourceListName}</span>
                     <span className={styles.quantity}>

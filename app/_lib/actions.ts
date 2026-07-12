@@ -11,6 +11,7 @@ import {
   shopperProducts,
   shopperUserState,
 } from '../_db/schema';
+import { suggestCategoryAndIcon } from './icons';
 import type { CombinedItemRow, ListItemRow, ListRow, ProductSuggestion, SharedListRow } from './types';
 
 /** Trimmed, lowercased form used for catalog dedupe/matching (SHP-04). */
@@ -347,23 +348,23 @@ export async function addItemToList(listId: string, name: string): Promise<void>
     existingProduct ??
     (await (async () => {
       const id = randomUUID();
+      // Best-effort category + icon from the name (SHP-05) — a starting
+      // guess, not a commitment; the manual picker (T-07) always wins if
+      // the user changes it later.
+      const { category, icon } = suggestCategoryAndIcon(trimmed);
       await db.insert(shopperProducts).values({
         id,
         tenantId,
         ownerUserId: list.ownerUserId,
         name: trimmed,
         normalizedName: normalized,
+        category,
+        icon,
         createdBy: userId,
         createdAt: ts,
         updatedAt: ts,
       });
-      return {
-        id,
-        name: trimmed,
-        category: null as string | null,
-        icon: null as string | null,
-        defaultUnit: null as string | null,
-      };
+      return { id, name: trimmed, category, icon, defaultUnit: null as string | null };
     })());
 
   const [lastItem] = await db
