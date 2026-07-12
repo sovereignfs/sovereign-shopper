@@ -1,0 +1,128 @@
+<svg viewBox="0 0 1280 800" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <style>
+    .surface { fill:#ffffff }
+    .raised { fill:#fafafa }
+    .sunken { fill:#f2f2f2 }
+    .border { stroke:#e2e2e2; stroke-width:1 }
+    .border-strong { stroke:#c9c9c9; stroke-width:1 }
+    .primary { fill:#1a1a1a }
+    .muted { fill:#6b6b6b }
+    .subtle { fill:#9a9a9a }
+    .accent-fill { fill:#111111 }
+    .accent-subtle { fill:#eeeeee }
+    .on-accent { fill:#ffffff }
+    .caption { font-size:11px; letter-spacing:.06em; }
+    .label { font-size:12px; }
+    .body { font-size:14px; }
+    .heading { font-size:20px; font-weight:600; }
+  </style>
+
+  <rect width="1280" height="800" class="surface"/>
+  <text x="16" y="792" class="subtle body">Screen: List view — populated, "Weekly groceries" active, add-item suggestions open</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="280" height="800" class="raised"/>
+  <line x1="280" y1="0" x2="280" y2="800" class="border"/>
+
+  <text x="24" y="40" class="primary" font-size="17" font-weight="700">Shopper</text>
+
+  <rect x="24" y="60" width="232" height="36" rx="8" class="accent-fill"/>
+  <text x="40" y="83" class="on-accent body" font-weight="600">+ New list</text>
+
+  <text x="24" y="128" class="subtle caption" font-weight="600">MY LISTS</text>
+
+  <rect x="16" y="140" width="248" height="40" rx="8" class="accent-subtle"/>
+  <text x="32" y="165" class="primary body" font-weight="600">Weekly groceries</text>
+
+  <rect x="16" y="184" width="248" height="40" rx="8" fill="none"/>
+  <text x="32" y="209" class="muted body">Costco run</text>
+
+  <line x1="24" y1="240" x2="256" y2="240" class="border"/>
+
+  <text x="24" y="264" class="subtle caption" font-weight="600">SHARED WITH ME</text>
+  <rect x="16" y="276" width="248" height="48" rx="8" fill="none"/>
+  <text x="32" y="297" class="muted body">Camping trip</text>
+  <text x="32" y="315" class="subtle" font-size="12">Shared by Alex R. · Can edit</text>
+
+  <line x1="24" y1="340" x2="256" y2="340" class="border"/>
+
+  <rect x="24" y="360" width="232" height="40" rx="8" class="sunken"/>
+  <text x="40" y="385" class="primary body">Combined view</text>
+
+  <!-- Main content -->
+  <text x="312" y="52" class="primary" font-size="24" font-weight="700">Weekly groceries</text>
+  <text x="312" y="76" class="muted body">3 people can see this</text>
+
+  <!-- header actions -->
+  <rect x="1080" y="30" width="88" height="32" rx="8" class="border-strong" fill="none"/>
+  <text x="1124" y="51" text-anchor="middle" class="primary body">Share</text>
+  <circle cx="1210" cy="46" r="16" class="sunken"/>
+  <text x="1210" y="51" text-anchor="middle" class="muted" font-size="16">⋯</text>
+
+  <!-- add item bar -->
+  <rect x="312" y="100" width="936" height="44" rx="10" class="border-strong" fill="#ffffff"/>
+  <text x="332" y="127" class="muted body">Add an item…  “kale”</text>
+
+  <!-- suggestions dropdown -->
+  <rect x="312" y="148" width="480" height="152" rx="10" class="border" fill="#ffffff"/>
+  <rect x="312" y="148" width="480" height="152" rx="10" fill="none" class="border-strong"/>
+  <circle cx="336" cy="176" r="12" class="sunken"/>
+  <text x="336" y="181" text-anchor="middle" font-size="12">🍌</text>
+  <text x="360" y="181" class="primary body">Bananas</text>
+  <text x="740" y="181" text-anchor="end" class="subtle" font-size="12">bought 4× recently</text>
+
+  <circle cx="336" cy="216" r="12" class="sunken"/>
+  <text x="336" y="221" text-anchor="middle" font-size="12">🍞</text>
+  <text x="360" y="221" class="primary body">Banana bread mix</text>
+
+  <line x1="328" y1="240" x2="768" y2="240" class="border"/>
+  <text x="336" y="264" class="muted body" font-style="italic">Add "kale" as a new item</text>
+  <text x="336" y="284" class="subtle" font-size="12">You'll pick a category and icon next</text>
+
+  <!-- category: Produce -->
+  <text x="312" y="332" class="subtle caption" font-weight="600">PRODUCE</text>
+
+  <line x1="312" y1="344" x2="1248" y2="344" class="border"/>
+  <rect x="312" y="344" width="16" height="16" rx="4" class="border-strong" fill="none" transform="translate(0,8)"/>
+  <text x="344" y="368" font-size="14">🍌</text>
+  <text x="368" y="368" class="primary body">Bananas</text>
+  <rect x="1080" y="352" width="84" height="28" rx="14" class="sunken"/>
+  <text x="1122" y="370" text-anchor="middle" class="muted" font-size="12">− 6 pcs +</text>
+
+  <line x1="312" y1="392" x2="1248" y2="392" class="border"/>
+  <rect x="312" y="392" width="16" height="16" rx="4" class="border-strong" fill="none" transform="translate(0,8)"/>
+  <text x="344" y="416" font-size="14">🥬</text>
+  <text x="368" y="416" class="primary body">Spinach</text>
+  <rect x="1080" y="400" width="84" height="28" rx="14" class="sunken"/>
+  <text x="1122" y="418" text-anchor="middle" class="muted" font-size="12">− 1 bag +</text>
+
+  <!-- category: Dairy -->
+  <text x="312" y="464" class="subtle caption" font-weight="600">DAIRY &amp; EGGS</text>
+  <line x1="312" y1="476" x2="1248" y2="476" class="border"/>
+  <rect x="312" y="476" width="16" height="16" rx="4" class="border-strong" fill="none" transform="translate(0,8)"/>
+  <text x="344" y="500" font-size="14">🥛</text>
+  <text x="368" y="500" class="primary body">Milk</text>
+  <rect x="1080" y="484" width="84" height="28" rx="14" class="sunken"/>
+  <text x="1122" y="502" text-anchor="middle" class="muted" font-size="12">− 1 L +</text>
+
+  <line x1="312" y1="524" x2="1248" y2="524" class="border"/>
+  <rect x="312" y="524" width="16" height="16" rx="4" class="border-strong" fill="none" transform="translate(0,8)"/>
+  <text x="344" y="548" font-size="14">🥚</text>
+  <text x="368" y="548" class="primary body">Eggs</text>
+  <rect x="1080" y="532" width="84" height="28" rx="14" class="sunken"/>
+  <text x="1122" y="550" text-anchor="middle" class="muted" font-size="12">− 12 pcs +</text>
+
+  <!-- category: Pantry -->
+  <text x="312" y="596" class="subtle caption" font-weight="600">PANTRY</text>
+  <line x1="312" y1="608" x2="1248" y2="608" class="border"/>
+  <rect x="312" y="608" width="16" height="16" rx="4" class="border-strong" fill="none" transform="translate(0,8)"/>
+  <text x="344" y="632" font-size="14">🫒</text>
+  <text x="368" y="632" class="primary body">Olive oil</text>
+  <rect x="1080" y="616" width="84" height="28" rx="14" class="sunken"/>
+  <text x="1122" y="634" text-anchor="middle" class="muted" font-size="12">− 1 pcs +</text>
+
+  <!-- bought (collapsed) -->
+  <rect x="312" y="672" width="936" height="40" rx="8" class="raised"/>
+  <text x="332" y="697" class="muted body" font-weight="600">▸ Bought (2)</text>
+  <text x="1160" y="697" text-anchor="end" class="subtle" font-size="12">Clear bought items</text>
+</svg>

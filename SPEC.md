@@ -1,25 +1,25 @@
-# Sovereign Tally
+# Sovereign Shopper
 
 **Version:** 0.2\
 **Date:** July 2026\
 **Author(s):** kasunben\
-**Purpose:** Canonical specification for the Sovereign Tally plugin — the single
+**Purpose:** Canonical specification for the Sovereign Shopper plugin — the single
 source of truth for its manifest, access model, data model, and build plan.\
 **Status:** Draft
 
 ---
 
-Sovereign Tally is a privacy-first, self-hosted **shared grocery list** that
+Sovereign Shopper is a privacy-first, self-hosted **shared grocery list** that
 grows into a **household purchase ledger**. Its primary entry point is a
 shared shopping list; every other feature is built around it. The data spine
 is the **purchase transaction** — every time a member taps an item as
 "bought", a transaction is recorded. That ledger later powers smarter
 suggestions, household analytics, and a clear path toward a future standalone
-household-ledger app (the name **Tally** reaches deliberately past
+household-ledger app (the name **Shopper** reaches deliberately past
 groceries).
 
 The plugin is `type: sovereign` — maintained in a separate external repository
-(`sovereign-tally`).
+(`sovereign-shopper`).
 
 This specification documents the **full product vision**, not only what
 Phase 1 ships. Features are milestone-sequenced, but the milestones are
@@ -53,7 +53,7 @@ Re-verified against the running codebase, not just RFC status headers — RFC
 | --- | --- | --- | --- |
 | `sdk.auth` | — | ✅ Stable | |
 | `sdk.db` | — | ✅ Stable | |
-| `sdk.directory` | 0041 | ✅ Implemented | RFC still reads "Draft" but `packages/sdk/src/directory.ts` is real and live. Needed for the Phase 1 share-target picker (TLY-09). |
+| `sdk.directory` | 0041 | ✅ Implemented | RFC still reads "Draft" but `packages/sdk/src/directory.ts` is real and live. Needed for the Phase 1 share-target picker (SHP-09). |
 | `sdk.mailer` | — | ✅ Stable | No-op without SMTP configured. |
 | `sdk.notifications` | 0015 | ✅ Implemented | |
 | `sdk.activity` | 0005 | ✅ Implemented | |
@@ -87,16 +87,16 @@ same conclusion as Sovereign Docs. Every surface it needs
 
 | Property                           | Value                                             |
 | ----------------------------------- | -------------------------------------------------- |
-| `id`                                | `fs.sovereign.tally`                                |
-| `name`                              | `Tally`                                             |
+| `id`                                | `fs.sovereign.shopper`                                |
+| `name`                              | `Shopper`                                             |
 | `type`                              | `sovereign`                                         |
 | `runtime`                           | `native`                                            |
-| `routePrefix`                       | `/tally`                                            |
+| `routePrefix`                       | `/shopper`                                            |
 | `shell`                             | `default`                                           |
 | `adminOnly`                         | omitted (`false`)                                   |
 | `icon`                              | `icon.svg`                                          |
 | `permissions`                       | full intended set — see below                       |
-| `repository`                        | `https://github.com/sovereignfs/sovereign-tally`     |
+| `repository`                        | `https://github.com/sovereignfs/sovereign-shopper`     |
 | `compatibility.minPlatformVersion`  | `0.19.0`                                            |
 
 The manifest declares the **full intended permission set** up front,
@@ -108,7 +108,7 @@ up without a manifest change.
 | Permission            | Status      | Used for                                    |
 | ---------------------- | ----------- | ------------------------------------------- |
 | `auth:session`         | ✅ today    | Current session; user lookup for members    |
-| `db:readWrite`         | ✅ today    | All `tally_*` tables                        |
+| `db:readWrite`         | ✅ today    | All `shopper_*` tables                        |
 | `mailer:send`          | ✅ today    | Optional invite emails (Phase 2, no-op without SMTP) |
 | `storage:readWrite`    | ⛔ reserved | Item photos, receipt images, icon assets    |
 | `notifications:send`   | ✅ today    | Shared-list + ledger notifications          |
@@ -122,13 +122,13 @@ reserved ones are added as their milestones land):
 ```json
 {
   "schemaVersion": 1,
-  "id": "fs.sovereign.tally",
-  "name": "Tally",
+  "id": "fs.sovereign.shopper",
+  "name": "Shopper",
   "version": "0.1.0",
   "description": "A shared grocery list.",
   "type": "sovereign",
   "runtime": "native",
-  "routePrefix": "/tally",
+  "routePrefix": "/shopper",
   "shell": "default",
   "database": {
     "isolation": "isolated",
@@ -136,7 +136,7 @@ reserved ones are added as their milestones land):
   },
   "icon": "icon.svg",
   "permissions": ["auth:session", "db:readWrite", "notifications:send", "data:provide"],
-  "repository": "https://github.com/sovereignfs/sovereign-tally",
+  "repository": "https://github.com/sovereignfs/sovereign-shopper",
   "compatibility": {
     "minPlatformVersion": "0.19.0"
   }
@@ -150,7 +150,7 @@ gate.
 
 **Phase 1 — no household, direct list ownership and sharing:**
 
-- A user owns the lists they create (`tally_lists.owner_user_id`).
+- A user owns the lists they create (`shopper_lists.owner_user_id`).
 - A list is private to its owner until explicitly shared.
 - The owner can share a list with a specific user as `editor` (can add/edit/
   check items) or `viewer` (read-only) via `sdk.directory`'s user picker —
@@ -162,31 +162,31 @@ gate.
 
 **Phase 2 — household model added on top (see Build plan):** owner/member
 roles per household, invites, a household's auto-shared default list, and a
-household analytics view. Phase 1's direct per-list sharing (`tally_list_shares`)
+household analytics view. Phase 1's direct per-list sharing (`shopper_list_shares`)
 continues to exist unchanged — it becomes the mechanism for sharing a list
-*beyond* a household's membership, exactly as originally speced (TLY-14
+*beyond* a household's membership, exactly as originally speced (SHP-14
 equivalent).
 
 ## Functional requirements
 
 Requirements are versioned to their milestone. IDs are stable within this
-revision — never renumber or reuse a `TLY-*` id going forward. (This revision
-itself renumbers the original draft's `TLY-01–64` into the sequence below,
+revision — never renumber or reuse a `SHP-*` id going forward. (This revision
+itself renumbers the original draft's `SHP-01–64` into the sequence below,
 as a one-time restructuring — see [Changelog](#changelog).)
 
 ### v0.1 — Simple shared grocery list (Phase 1 — this build)
 
 | ID | Requirement |
 | --- | --- |
-| TLY-01 | Create a shopping list, owned by the creating user. No household required. |
-| TLY-02 | Switch between the user's own lists and lists shared with them. Opt-in combined view aggregates items across all accessible lists (read-only roll-up). |
-| TLY-03 | Landing page is the last-used list (per-user state). |
-| TLY-04 | Add an item to a list with type-ahead auto-suggestions sourced from the list owner's product catalog and purchase history. One-tap quick-add from a suggestion. |
-| TLY-05 | Each list item displays an icon indicating what it is — curated icon set with a category-mapped fallback. |
-| TLY-06 | Edit-item view: name, quantity, unit, category, icon, barcode, price. Saving updates the linked catalog product so the next add of the same item is pre-filled. |
-| TLY-07 | Tap an item to mark it bought: sets `checked_at` and records a purchase transaction (buyer, time, list, quantity, price if known). Un-tapping reverses both. |
-| TLY-08 | Clear bought items from a list; reorder items (`sort_order`); group the list view by category. |
-| TLY-09 | Share a list with a specific user as `editor` or `viewer`, via `sdk.directory`'s user picker. Owner can revoke. |
+| SHP-01 | Create a shopping list, owned by the creating user. No household required. |
+| SHP-02 | Switch between the user's own lists and lists shared with them. Opt-in combined view aggregates items across all accessible lists (read-only roll-up). |
+| SHP-03 | Landing page is the last-used list (per-user state). |
+| SHP-04 | Add an item to a list with type-ahead auto-suggestions sourced from the list owner's product catalog and purchase history. One-tap quick-add from a suggestion. |
+| SHP-05 | Each list item displays an icon indicating what it is — curated icon set with a category-mapped fallback. |
+| SHP-06 | Edit-item view: name, quantity, unit, category, icon, barcode, price. Saving updates the linked catalog product so the next add of the same item is pre-filled. |
+| SHP-07 | Tap an item to mark it bought: sets `checked_at` and records a purchase transaction (buyer, time, list, quantity, price if known). Un-tapping reverses both. |
+| SHP-08 | Clear bought items from a list; reorder items (`sort_order`); group the list view by category. |
+| SHP-09 | Share a list with a specific user as `editor` or `viewer`, via `sdk.directory`'s user picker. Owner can revoke. |
 
 **Done when:** a user creates a list, adds items via suggestions with icons,
 taps to buy (recording transactions), and shares the list with another user
@@ -196,20 +196,20 @@ who can see and edit it per their role.
 
 | ID | Requirement |
 | --- | --- |
-| TLY-20 | Optional household creation: name; creator becomes `owner`. A user may belong to zero or more households (not mandatory). |
-| TLY-21 | Invite a user to a household via a shareable link/code; optional email delivery via `sdk.mailer` (no-op when SMTP is unconfigured). Accepting joins as `member`. |
-| TLY-22 | Manage membership: remove a member; leave a household. The last `owner` can never be removed. |
-| TLY-23 | Each household gets a default shared shopping list, auto-shared with all members. |
-| TLY-24 | A list can be reassigned from personal to household-owned (migrates `owner_user_id` scoping to `household_id` scoping — see data model). |
-| TLY-25 | Household view = analytics and insights: spend over time, category breakdown, most-frequent/recent items, who-bought-what — derived from purchase transactions. Member management also lives here. |
+| SHP-20 | Optional household creation: name; creator becomes `owner`. A user may belong to zero or more households (not mandatory). |
+| SHP-21 | Invite a user to a household via a shareable link/code; optional email delivery via `sdk.mailer` (no-op when SMTP is unconfigured). Accepting joins as `member`. |
+| SHP-22 | Manage membership: remove a member; leave a household. The last `owner` can never be removed. |
+| SHP-23 | Each household gets a default shared shopping list, auto-shared with all members. |
+| SHP-24 | A list can be reassigned from personal to household-owned (migrates `owner_user_id` scoping to `household_id` scoping — see data model). |
+| SHP-25 | Household view = analytics and insights: spend over time, category breakdown, most-frequent/recent items, who-bought-what — derived from purchase transactions. Member management also lives here. |
 
 ### v0.3 — Light inventory and learned suggestions
 
 | ID | Requirement |
 | --- | --- |
-| TLY-30 | Per-product on-hand quantity (light inventory), adjusted from purchases and manual edits. |
-| TLY-31 | Per-product low-stock threshold and flag; low items are surfaced as suggestions while building a list. |
-| TLY-32 | Suggestion ranking learns from purchase frequency and recency; remembered category and icon are auto-applied to repeat items. |
+| SHP-30 | Per-product on-hand quantity (light inventory), adjusted from purchases and manual edits. |
+| SHP-31 | Per-product low-stock threshold and flag; low items are surfaced as suggestions while building a list. |
+| SHP-32 | Suggestion ranking learns from purchase frequency and recency; remembered category and icon are auto-applied to repeat items. |
 
 ### v0.4 — Media and capture
 
@@ -218,8 +218,8 @@ _Depends on `storage:readWrite` and device camera (`sdk.device.*`) — see
 
 | ID | Requirement |
 | --- | --- |
-| TLY-40 | Attach a photo to a product or list item (`sdk.storage`). |
-| TLY-41 | Barcode scanning to add or look up items (`sdk.device` camera / Web `getUserMedia`), with optional external product lookup (e.g. Open Food Facts) via a plugin server route. |
+| SHP-40 | Attach a photo to a product or list item (`sdk.storage`). |
+| SHP-41 | Barcode scanning to add or look up items (`sdk.device` camera / Web `getUserMedia`), with optional external product lookup (e.g. Open Food Facts) via a plugin server route. |
 
 ### v0.5 — Real-time and notifications
 
@@ -227,9 +227,9 @@ _Depends on `events:*`; notifications can use `sdk.notifications` today._
 
 | ID | Requirement |
 | --- | --- |
-| TLY-50 | Live shared-list sync — members see adds and check-offs in real time (`sdk.events`); polling is the fallback where unavailable. |
-| TLY-51 | Notifications (in-app + push/email) for "item added to a shared list", "someone bought X", and invites (`sdk.notifications`). |
-| TLY-52 | Household/list activity feed backed by domain tables plus platform-visible `sdk.activity` events. |
+| SHP-50 | Live shared-list sync — members see adds and check-offs in real time (`sdk.events`); polling is the fallback where unavailable. |
+| SHP-51 | Notifications (in-app + push/email) for "item added to a shared list", "someone bought X", and invites (`sdk.notifications`). |
+| SHP-52 | Household/list activity feed backed by domain tables plus platform-visible `sdk.activity` events. |
 
 ### v0.6 — Intelligence
 
@@ -238,10 +238,10 @@ background scheduling — see [runtime gaps](#platform-capabilities-and-runtime-
 
 | ID | Requirement |
 | --- | --- |
-| TLY-60 | AI unique icon/image generation per item, mediated through the assistant/harness layer. |
-| TLY-61 | Receipt scan → bulk purchases (image OCR + line-item parsing into transactions), with confirmed tool execution for writes. |
-| TLY-62 | Smart auto-categorization of new items. |
-| TLY-63 | Predictive restock: suggest a list from consumption patterns (requires scheduled/background execution). |
+| SHP-60 | AI unique icon/image generation per item, mediated through the assistant/harness layer. |
+| SHP-61 | Receipt scan → bulk purchases (image OCR + line-item parsing into transactions), with confirmed tool execution for writes. |
+| SHP-62 | Smart auto-categorization of new items. |
+| SHP-63 | Predictive restock: suggest a list from consumption patterns (requires scheduled/background execution). |
 
 ### v0.7 — Ledger
 
@@ -249,18 +249,18 @@ _Toward the standalone household-ledger app._
 
 | ID | Requirement |
 | --- | --- |
-| TLY-70 | Price history and spend trends per product and per household. |
-| TLY-71 | Budgets per category with progress tracking. |
-| TLY-72 | Recurring purchases / auto-recurring list items. |
-| TLY-73 | Multi-currency purchases. |
-| TLY-74 | CSV / export of the household ledger. |
+| SHP-70 | Price history and spend trends per product and per household. |
+| SHP-71 | Budgets per category with progress tracking. |
+| SHP-72 | Recurring purchases / auto-recurring list items. |
+| SHP-73 | Multi-currency purchases. |
+| SHP-74 | CSV / export of the household ledger. |
 
 ## Directory structure
 
 ```
-sovereign-tally/
+sovereign-shopper/
 ├── manifest.json
-├── icon.svg                    # Tally icon — sidebar middle section + Launcher grid
+├── icon.svg                    # Shopper icon — sidebar middle section + Launcher grid
 ├── app/
 │   ├── layout.tsx              # list switcher + content area
 │   ├── page.tsx                # last-used list (landing), or empty state if none
@@ -271,7 +271,7 @@ sovereign-tally/
 │   └── api/
 │       └── [...path]/route.ts  # suggestion lookup, external barcode lookup (Phase 4+)
 ├── db/
-│   └── schema.ts               # all tally_* tables
+│   └── schema.ts               # all shopper_* tables
 ├── migrations/                 # Drizzle migration files
 ├── components/
 │   ├── ListView.tsx            # checkable rows + group-by-category
@@ -284,14 +284,14 @@ sovereign-tally/
 │   └── OnboardingForm.tsx      # create household / accept invite (Phase 2)
 ├── lib/
 │   ├── suggestions.ts          # catalog + history ranking
-│   ├── analytics.ts            # query-time aggregations over tally_purchases
+│   ├── analytics.ts            # query-time aggregations over shopper_purchases
 │   └── icons.ts                # category → icon mapping
 └── package.json
 ```
 
 ## Data model
 
-All tables prefixed `tally_`, all carry `tenant_id` per the platform
+All tables prefixed `shopper_`, all carry `tenant_id` per the platform
 architectural rule. Monetary amounts are stored as integers (smallest
 currency unit), never as floats. Quantities are numeric and may be
 fractional (e.g. `1.5 kg`); stored dialect-agnostically (SQLite ↔ Postgres
@@ -300,17 +300,17 @@ parity), never as a binary float.
 **Phase 1 introduces ownership as `owner_user_id` on lists/products/purchases.
 Phase 2 adds `household_id` (nullable) alongside it** — a list/product/purchase
 is scoped to *either* its owner user *or* a household, never both, and Phase
-2's migration (TLY-24) is the only path that moves a row from one scoping to
+2's migration (SHP-24) is the only path that moves a row from one scoping to
 the other. This avoids a breaking schema change when households land.
 
-### `tally_lists`
+### `shopper_lists`
 
 | Column          | Type       | Notes                                                            |
 | --------------- | ---------- | ----------------------------------------------------------------- |
 | `id`            | uuid / pk  |                                                                   |
 | `tenant_id`     | string     |                                                                   |
 | `owner_user_id` | string     | FK → users. Set in Phase 1; always the creator at first.          |
-| `household_id`  | uuid?      | Nullable. FK → `tally_households`. Null until Phase 2 (TLY-24).   |
+| `household_id`  | uuid?      | Nullable. FK → `shopper_households`. Null until Phase 2 (SHP-24).   |
 | `name`          | string     |                                                                   |
 | `kind`          | enum       | `personal \| household`. `household` only valid once `household_id` is set. |
 | `created_by`    | string     | FK → users.                                                       |
@@ -318,13 +318,13 @@ the other. This avoids a breaking schema change when households land.
 | `created_at`    | timestamp  |                                                                   |
 | `updated_at`    | timestamp  |                                                                   |
 
-### `tally_list_shares` (Phase 1)
+### `shopper_list_shares` (Phase 1)
 
 | Column       | Type      | Notes               |
 | ------------ | --------- | ------------------- |
 | `id`         | uuid / pk |                     |
 | `tenant_id`  | string    |                     |
-| `list_id`    | uuid      | FK → `tally_lists`. |
+| `list_id`    | uuid      | FK → `shopper_lists`. |
 | `user_id`    | string    | FK → users.         |
 | `role`       | enum      | `editor \| viewer`. |
 | `created_at` | timestamp |                     |
@@ -334,7 +334,7 @@ mechanism in Phase 1. In Phase 2, household membership grants implicit
 access to the household's default list; this table continues to handle
 explicit per-user shares beyond that.
 
-### `tally_products`
+### `shopper_products`
 
 The catalog of remembered items — the source of auto-suggestions and the
 place edits accumulate so repeat adds get faster.
@@ -344,7 +344,7 @@ place edits accumulate so repeat adds get faster.
 | `id`                    | uuid / pk |                                                              |
 | `tenant_id`             | string    |                                                              |
 | `owner_user_id`         | string    | FK → users. Catalog owner in Phase 1 (the list creator).     |
-| `household_id`          | uuid?     | Nullable. FK → `tally_households`. Set once migrated (Phase 2). |
+| `household_id`          | uuid?     | Nullable. FK → `shopper_households`. Set once migrated (Phase 2). |
 | `name`                  | string    |                                                              |
 | `normalized_name`       | string    | Lower/trimmed form for dedupe + suggestion matching.         |
 | `category`              | string?   | Nullable.                                                    |
@@ -363,27 +363,27 @@ place edits accumulate so repeat adds get faster.
 Unique index on (`owner_user_id`, `normalized_name`) in Phase 1; add
 (`household_id`, `normalized_name`) once Phase 2 migration exists.
 
-### `tally_list_items`
+### `shopper_list_items`
 
 | Column       | Type       | Notes                                                          |
 | ------------ | ---------- | ---------------------------------------------------------------- |
 | `id`         | uuid / pk  |                                                                  |
 | `tenant_id`  | string     |                                                                  |
-| `list_id`    | uuid       | FK → `tally_lists`.                                              |
-| `product_id` | uuid?      | Nullable. FK → `tally_products`. Null for a pure ad-hoc entry.   |
+| `list_id`    | uuid       | FK → `shopper_lists`.                                              |
+| `product_id` | uuid?      | Nullable. FK → `shopper_products`. Null for a pure ad-hoc entry.   |
 | `name`       | string     | Snapshot label. Required when `product_id` is null.              |
 | `quantity`   | numeric    | Fractional allowed. Not a binary float.                          |
 | `unit`       | string?    | Nullable.                                                        |
 | `category`   | string?    | Nullable.                                                        |
 | `icon`       | string?    | Nullable.                                                        |
-| `sort_order` | integer    | Manual ordering (TLY-08).                                        |
-| `checked_at` | timestamp? | Nullable. Set when marked bought (TLY-07).                       |
+| `sort_order` | integer    | Manual ordering (SHP-08).                                        |
+| `checked_at` | timestamp? | Nullable. Set when marked bought (SHP-07).                       |
 | `added_by`   | string     | FK → users.                                                      |
 | `created_at` | timestamp  |                                                                  |
 
-### `tally_purchases`
+### `shopper_purchases`
 
-The ledger — one row written per "mark bought" (TLY-07). Designed to be
+The ledger — one row written per "mark bought" (SHP-07). Designed to be
 grocery-agnostic so the future standalone ledger app can build on it
 directly.
 
@@ -392,10 +392,10 @@ directly.
 | `id`            | uuid / pk |                                                                 |
 | `tenant_id`     | string    |                                                                 |
 | `owner_user_id` | string    | FK → users. List owner at time of purchase (Phase 1 scoping).  |
-| `household_id`  | uuid?     | Nullable. FK → `tally_households`. Set once migrated (Phase 2). |
-| `list_id`       | uuid?     | Nullable. FK → `tally_lists`.                                   |
-| `list_item_id`  | uuid?     | Nullable. FK → `tally_list_items`.                              |
-| `product_id`    | uuid?     | Nullable. FK → `tally_products`.                                |
+| `household_id`  | uuid?     | Nullable. FK → `shopper_households`. Set once migrated (Phase 2). |
+| `list_id`       | uuid?     | Nullable. FK → `shopper_lists`.                                   |
+| `list_item_id`  | uuid?     | Nullable. FK → `shopper_list_items`.                              |
+| `product_id`    | uuid?     | Nullable. FK → `shopper_products`.                                |
 | `name`          | string    | Snapshot label.                                                 |
 | `quantity`      | numeric   | Fractional allowed.                                             |
 | `unit`          | string?   | Nullable.                                                       |
@@ -404,20 +404,20 @@ directly.
 | `purchased_by`  | string    | FK → users.                                                     |
 | `purchased_at`  | timestamp |                                                                 |
 
-Analytics (TLY-25), price history (TLY-70), and low-stock detection (TLY-31)
-are computed at query time from this table and `tally_products` — no stored
+Analytics (SHP-25), price history (SHP-70), and low-stock detection (SHP-31)
+are computed at query time from this table and `shopper_products` — no stored
 aggregates.
 
-### `tally_user_state`
+### `shopper_user_state`
 
 | Column         | Type        | Notes                                                |
 | -------------- | ----------- | ------------------------------------------------------ |
 | `user_id`      | string / pk | FK → users.                                             |
 | `tenant_id`    | string      |                                                         |
-| `last_list_id` | uuid?       | Nullable. FK → `tally_lists`. Landing page (TLY-03).    |
+| `last_list_id` | uuid?       | Nullable. FK → `shopper_lists`. Landing page (SHP-03).    |
 | `updated_at`   | timestamp   |                                                         |
 
-### `tally_households` (Phase 2)
+### `shopper_households` (Phase 2)
 
 | Column        | Type       | Notes                     |
 | ------------- | ---------- | -------------------------- |
@@ -428,27 +428,27 @@ aggregates.
 | `archived_at` | timestamp? | Nullable. Set on archive.  |
 | `created_at`  | timestamp  |                            |
 
-### `tally_household_members` (Phase 2)
+### `shopper_household_members` (Phase 2)
 
 | Column         | Type      | Notes                    |
 | -------------- | --------- | -------------------------- |
 | `id`           | uuid / pk |                            |
 | `tenant_id`    | string    |                            |
-| `household_id` | uuid      | FK → `tally_households`.   |
+| `household_id` | uuid      | FK → `shopper_households`.   |
 | `user_id`      | string    | FK → users.                |
 | `role`         | enum      | `owner \| member`.         |
 | `joined_at`    | timestamp |                            |
 
 Unique index on (`household_id`, `user_id`). At least one `owner` per
-household enforced at the app layer (TLY-22).
+household enforced at the app layer (SHP-22).
 
-### `tally_household_invites` (Phase 2)
+### `shopper_household_invites` (Phase 2)
 
 | Column         | Type       | Notes                                           |
 | -------------- | ---------- | ------------------------------------------------- |
 | `id`           | uuid / pk  |                                                    |
 | `tenant_id`    | string     |                                                    |
-| `household_id` | uuid       | FK → `tally_households`.                           |
+| `household_id` | uuid       | FK → `shopper_households`.                           |
 | `code`         | string     | Unique token used in the shareable invite link.    |
 | `email`        | string?    | Nullable. Set when the invite is also emailed.     |
 | `invited_by`   | string     | FK → users.                                        |
@@ -457,13 +457,13 @@ household enforced at the app layer (TLY-22).
 | `accepted_by`  | string?    | Nullable. FK → users.                              |
 | `created_at`   | timestamp  |                                                    |
 
-### `tally_budgets` (v0.7)
+### `shopper_budgets` (v0.7)
 
 | Column         | Type      | Notes                            |
 | -------------- | --------- | ---------------------------------- |
 | `id`           | uuid / pk |                                    |
 | `tenant_id`    | string    |                                    |
-| `household_id` | uuid      | FK → `tally_households`.           |
+| `household_id` | uuid      | FK → `shopper_households`.           |
 | `category`     | string?   | Nullable. Null = overall budget.   |
 | `amount`       | integer   | Cents.                             |
 | `period`       | enum      | `monthly \| weekly`.               |
@@ -474,7 +474,7 @@ household enforced at the app layer (TLY-22).
 | SDK surface         | Status         | Used for                                         |
 | -------------------- | -------------- | --------------------------------------------------- |
 | `sdk.auth`           | ✅ stable       | Session                                              |
-| `sdk.db`             | ✅ stable       | Read/write all `tally_*` tables                      |
+| `sdk.db`             | ✅ stable       | Read/write all `shopper_*` tables                      |
 | `sdk.directory`      | ✅ implemented  | User lookup for Phase 1 sharing; Phase 2 invites/members |
 | `sdk.mailer`         | ✅ stable       | Optional invite emails, Phase 2 (no-op without SMTP) |
 | `sdk.notifications`  | ✅ implemented  | Shared-list + ledger notifications (v0.5)            |
@@ -488,26 +488,26 @@ household enforced at the app layer (TLY-22).
 ## Platform capabilities and runtime gaps
 
 1. **Object storage (`sdk.storage` / `storage:readWrite`)** — RFC 0044,
-   confirmed stub. Blocks v0.4 (photos, TLY-40/41 lookup images) and v0.6
+   confirmed stub. Blocks v0.4 (photos, SHP-40/41 lookup images) and v0.6
    (icon assets).
 2. **Notifications (`sdk.notifications`)** — available. v0.5 should use the
    platform Notification Center and avoid plugin-owned push subscriptions.
 3. **Realtime events (`sdk.events`)** — RFC 0045, confirmed missing. Blocks
-   TLY-50 live sync. Polling is the v1 stopgap.
-4. **Activity feed (`sdk.activity`)** — available. TLY-52 should combine
+   SHP-50 live sync. Polling is the v1 stopgap.
+4. **Activity feed (`sdk.activity`)** — available. SHP-52 should combine
    plugin domain history with platform-visible audit events.
 5. **Device / camera (`sdk.device.*`)** — the post-v1 Capacitor plan (SRS
-   §3.12). TLY-40/41 capture works via Web `getUserMedia` in the PWA today.
-6. **Assistant/harness integration** — TLY-60 (icon generation), TLY-61
-   (receipt OCR/parsing), and TLY-62 (categorization) should route through
+   §3.12). SHP-40/41 capture works via Web `getUserMedia` in the PWA today.
+6. **Assistant/harness integration** — SHP-60 (icon generation), SHP-61
+   (receipt OCR/parsing), and SHP-62 (categorization) should route through
    the shared assistant layer rather than a plugin-local provider stack.
    Blocked in part by RFC 0047 (`sdk.tools`), confirmed absent from the SDK.
 7. **Background jobs / scheduling (`sdk.jobs`)** — RFC 0046, confirmed
-   partially implemented (Phase 1 subset exists). TLY-63 (predictive
-   restock), TLY-72 (recurring items), and scheduled budget rollups need to
+   partially implemented (Phase 1 subset exists). SHP-63 (predictive
+   restock), SHP-72 (recurring items), and scheduled budget rollups need to
    verify whether the existing partial surface is sufficient or needs
    extension — check at v0.6 planning time, not now.
-8. **Outbound HTTP** for external barcode/product lookup (TLY-41) — already
+8. **Outbound HTTP** for external barcode/product lookup (SHP-41) — already
    available from native server routes; no new surface needed.
 
 Items 1, 3, and 6 (fully) are hard platform blockers. Item 7 needs a
@@ -561,17 +561,17 @@ Summary of sequencing:
    the runtime should standardize for `sdk.events`.
 4. **Item icon source (Phase 1).** Curated icon set + category fallback
    (recommendation) is sufficient until AI generation (v0.6) lands.
-5. **Combined view (TLY-02).** Read-only roll-up in Phase 1 (recommendation);
+5. **Combined view (SHP-02).** Read-only roll-up in Phase 1 (recommendation);
    editable combined view is deferred.
-6. **Ledger generalization.** Keep `tally_purchases` grocery-agnostic so the
+6. **Ledger generalization.** Keep `shopper_purchases` grocery-agnostic so the
    standalone ledger app can build on it without a breaking migration.
    Confirm no grocery-specific columns leak in.
-7. **Invite delivery (Phase 2, TLY-21).** Link/code is the canonical path
+7. **Invite delivery (Phase 2, SHP-21).** Link/code is the canonical path
    (works without SMTP); email via `sdk.mailer` is an optional convenience.
-8. **Phase 1 → Phase 2 migration mechanics (new).** TLY-24's list
+8. **Phase 1 → Phase 2 migration mechanics (new).** SHP-24's list
    reassignment from `owner_user_id` to `household_id` scoping needs a
    concrete migration script + UX (does the owner choose which lists join
-   the household? what happens to `tally_list_shares` on a migrated list?).
+   the household? what happens to `shopper_list_shares` on a migrated list?).
    Design this at the start of Phase 2, not deferred further.
 
 ## Changelog
@@ -579,4 +579,4 @@ Summary of sequencing:
 | Version | Date     | Change |
 | ------- | -------- | ------ |
 | 0.1     | Jun 2026 | Initial draft — full-vision spec from the design session; identifies runtime capability gaps. |
-| 0.2     | Jul 2026 | Restructured for a simplified Phase 1: household model (originally mandatory in v0.1) moved to a new v0.2; direct per-list sharing promoted to Phase 1. All `TLY-*` IDs renumbered as a one-time restructuring. Platform capability statuses re-verified against code. |
+| 0.2     | Jul 2026 | Restructured for a simplified Phase 1: household model (originally mandatory in v0.1) moved to a new v0.2; direct per-list sharing promoted to Phase 1. All `SHP-*` IDs renumbered as a one-time restructuring. Platform capability statuses re-verified against code. |

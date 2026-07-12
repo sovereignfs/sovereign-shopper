@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "fs.sovereign.shopper",
+  "name": "Shopper",
+  "version": "0.1.0",
+  "description": "A shared grocery list.",
+  "type": "sovereign",
+  "runtime": "native",
+  "routePrefix": "/shopper",
+  "shell": "default",
+  "icon": "icon.svg",
+  "database": {
+    "isolation": "isolated",
+    "dialect": "sqlite"
+  },
+  "permissions": ["auth:session", "db:readWrite", "notifications:send", "data:provide"],
+  "repository": "https://github.com/sovereignfs/sovereign-shopper",
+  "compatibility": {
+    "minPlatformVersion": "0.19.0"
+  }
+}

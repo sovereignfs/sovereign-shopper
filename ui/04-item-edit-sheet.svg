@@ -1,0 +1,79 @@
+<svg viewBox="0 0 1280 800" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <style>
+    .surface { fill:#ffffff }
+    .raised { fill:#fafafa }
+    .sunken { fill:#f2f2f2 }
+    .border { stroke:#e2e2e2; stroke-width:1 }
+    .border-strong { stroke:#c9c9c9; stroke-width:1 }
+    .primary { fill:#1a1a1a }
+    .muted { fill:#6b6b6b }
+    .subtle { fill:#9a9a9a }
+    .accent-fill { fill:#111111 }
+    .on-accent { fill:#ffffff }
+    .error-text { fill:#b3261e }
+    .caption { font-size:11px; letter-spacing:.06em; }
+    .body { font-size:14px; }
+  </style>
+
+  <rect width="1280" height="800" class="surface"/>
+  <text x="16" y="792" class="subtle body">Screen: Item edit — Sheet component, bottom-anchored, no scrim (background stays visible)</text>
+
+  <!-- dimmed background: list view still visible behind -->
+  <rect x="0" y="0" width="280" height="800" class="raised"/>
+  <line x1="280" y1="0" x2="280" y2="800" class="border"/>
+  <text x="24" y="40" class="primary" font-size="17" font-weight="700">Shopper</text>
+  <text x="312" y="52" class="primary" font-size="24" font-weight="700">Weekly groceries</text>
+  <text x="312" y="332" class="subtle caption" font-weight="600">PRODUCE</text>
+  <line x1="312" y1="344" x2="1248" y2="344" class="border"/>
+  <text x="344" y="368" font-size="14">🍌</text>
+  <text x="368" y="368" class="primary body">Bananas</text>
+
+  <!-- Sheet -->
+  <rect x="0" y="360" width="1280" height="440" class="surface"/>
+  <rect x="0" y="360" width="1280" height="440" fill="none" stroke="#c9c9c9" stroke-width="1"/>
+  <rect x="600" y="372" width="80" height="5" rx="2.5" class="border-strong"/>
+
+  <text x="48" y="416" class="primary" font-size="18" font-weight="700">Edit item</text>
+  <text x="1232" y="416" text-anchor="end" class="error-text body" font-weight="600">Remove from list</text>
+
+  <line x1="48" y1="432" x2="1232" y2="432" class="border"/>
+
+  <!-- Name -->
+  <text x="48" y="464" class="subtle caption" font-weight="600">NAME</text>
+  <rect x="48" y="472" width="1184" height="40" rx="8" class="border-strong" fill="#ffffff"/>
+  <text x="64" y="497" class="primary body">Bananas</text>
+
+  <!-- Quantity + unit, Category -->
+  <text x="48" y="536" class="subtle caption" font-weight="600">QUANTITY</text>
+  <rect x="48" y="544" width="200" height="40" rx="20" class="sunken"/>
+  <text x="80" y="569" class="primary body" font-weight="600">−</text>
+  <text x="148" y="569" text-anchor="middle" class="primary body">6</text>
+  <text x="216" y="569" class="primary body" font-weight="600">+</text>
+  <rect x="260" y="544" width="100" height="40" rx="8" class="border-strong" fill="#ffffff"/>
+  <text x="276" y="569" class="primary body">pcs ▾</text>
+
+  <text x="400" y="536" class="subtle caption" font-weight="600">CATEGORY</text>
+  <rect x="400" y="544" width="300" height="40" rx="8" class="border-strong" fill="#ffffff"/>
+  <text x="416" y="569" class="primary body">Produce ▾</text>
+
+  <!-- Icon -->
+  <text x="740" y="536" class="subtle caption" font-weight="600">ICON</text>
+  <circle cx="760" cy="564" r="20" class="sunken"/>
+  <text x="760" y="570" text-anchor="middle" font-size="16">🍌</text>
+  <rect x="792" y="544" width="132" height="40" rx="8" class="border-strong" fill="#ffffff"/>
+  <text x="808" y="569" class="primary body">Change icon</text>
+
+  <!-- Barcode + price -->
+  <text x="48" y="616" class="subtle caption" font-weight="600">BARCODE — OPTIONAL</text>
+  <rect x="48" y="624" width="560" height="40" rx="8" class="border-strong" fill="#ffffff"/>
+  <text x="64" y="649" class="muted body">Scan or enter manually</text>
+  <text x="48" y="680" class="subtle" font-size="12">Barcode scanning arrives in a later update — you can type a code now if you have one.</text>
+
+  <text x="640" y="616" class="subtle caption" font-weight="600">PRICE — OPTIONAL</text>
+  <rect x="640" y="624" width="280" height="40" rx="8" class="border-strong" fill="#ffffff"/>
+  <text x="656" y="649" class="muted body">$0.00</text>
+
+  <!-- footer -->
+  <rect x="48" y="724" width="1184" height="44" rx="8" class="accent-fill"/>
+  <text x="640" y="751" text-anchor="middle" class="on-accent body" font-weight="600">Save changes</text>
+</svg>

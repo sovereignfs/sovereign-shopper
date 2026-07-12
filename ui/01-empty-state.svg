@@ -1,0 +1,63 @@
+<svg viewBox="0 0 1280 800" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <style>
+    .surface { fill:#ffffff }
+    .raised { fill:#fafafa }
+    .sunken { fill:#f2f2f2 }
+    .border { stroke:#e2e2e2; stroke-width:1 }
+    .border-strong { stroke:#c9c9c9; stroke-width:1 }
+    .primary { fill:#1a1a1a }
+    .muted { fill:#6b6b6b }
+    .subtle { fill:#9a9a9a }
+    .accent-fill { fill:#111111 }
+    .on-accent { fill:#ffffff }
+    .caption { font-size:11px; letter-spacing:.06em; }
+    .label { font-size:12px; }
+    .body { font-size:14px; }
+    .heading { font-size:22px; font-weight:600; }
+  </style>
+
+  <rect width="1280" height="800" class="surface"/>
+  <text x="16" y="792" class="subtle body">Screen: Empty state (desktop) — brand-new user, zero lists, nothing shared to them</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="280" height="800" class="raised"/>
+  <line x1="280" y1="0" x2="280" y2="800" class="border"/>
+
+  <text x="24" y="40" class="primary" font-size="17" font-weight="700">Shopper</text>
+
+  <rect x="24" y="60" width="232" height="36" rx="8" class="accent-fill"/>
+  <text x="40" y="83" class="on-accent body" font-weight="600">+ New list</text>
+
+  <text x="24" y="128" class="subtle caption" font-weight="600">MY LISTS</text>
+  <text x="24" y="156" class="subtle body" font-style="italic">No lists yet</text>
+
+  <line x1="24" y1="188" x2="256" y2="188" class="border"/>
+
+  <text x="24" y="212" class="subtle caption" font-weight="600">SHARED WITH ME</text>
+  <text x="24" y="240" class="subtle body" font-style="italic">Nothing shared with you yet</text>
+
+  <line x1="24" y1="272" x2="256" y2="272" class="border"/>
+
+  <g opacity="0.4">
+    <rect x="24" y="292" width="232" height="40" rx="8" class="sunken"/>
+    <text x="40" y="317" class="muted body">Combined view</text>
+  </g>
+  <text x="24" y="348" class="subtle" font-size="12">Available once you have 2+ lists</text>
+
+  <!-- Main content: centered empty state -->
+  <g>
+    <circle cx="640" cy="330" r="44" class="sunken"/>
+    <!-- simple basket glyph -->
+    <path d="M620 322 L660 322 L654 344 L626 344 Z" fill="none" class="border-strong" stroke-width="2"/>
+    <line x1="628" y1="322" x2="636" y2="308" class="border-strong" stroke-width="2"/>
+    <line x1="652" y1="322" x2="644" y2="308" class="border-strong" stroke-width="2"/>
+
+    <text x="640" y="404" text-anchor="middle" class="primary heading">Start your first list</text>
+    <text x="640" y="432" text-anchor="middle" class="muted body">Add items as you think of them, then check them off at the store.</text>
+
+    <rect x="560" y="458" width="160" height="40" rx="8" class="accent-fill"/>
+    <text x="640" y="483" text-anchor="middle" class="on-accent body" font-weight="600">Create list</text>
+
+    <text x="640" y="524" text-anchor="middle" class="subtle" font-size="13">Been invited to a list? Ask for the share link — it'll show up under "Shared with me".</text>
+  </g>
+</svg>

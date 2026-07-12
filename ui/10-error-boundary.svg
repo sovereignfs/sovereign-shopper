@@ -1,0 +1,32 @@
+<svg viewBox="0 0 1280 800" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <style>
+    .surface { fill:#ffffff }
+    .sunken { fill:#f2f2f2 }
+    .border-strong { stroke:#c9c9c9; stroke-width:1 }
+    .primary { fill:#1a1a1a }
+    .muted { fill:#6b6b6b }
+    .subtle { fill:#9a9a9a }
+    .accent-fill { fill:#111111 }
+    .on-accent { fill:#ffffff }
+    .error-text { fill:#b3261e }
+    .error-border { stroke:#f2b8b5; stroke-width:2 }
+    .body { font-size:14px; }
+    .heading { font-size:22px; font-weight:600; }
+  </style>
+
+  <rect width="1280" height="800" class="surface"/>
+  <text x="16" y="792" class="subtle body">Screen: app/error.tsx — client boundary, replaces the whole plugin area, sidebar included. Same layout applies at any viewport width.</text>
+
+  <circle cx="640" cy="320" r="44" class="sunken"/>
+  <circle cx="640" cy="320" r="44" fill="none" class="error-border"/>
+  <text x="640" y="335" text-anchor="middle" class="error-text" font-size="28" font-weight="700">!</text>
+
+  <text x="640" y="404" text-anchor="middle" class="primary heading">Something went wrong</text>
+  <text x="640" y="432" text-anchor="middle" class="muted body">Shopper hit a snag loading your lists. Your data is safe —</text>
+  <text x="640" y="452" text-anchor="middle" class="muted body">this is just a display hiccup.</text>
+
+  <rect x="560" y="480" width="160" height="44" rx="8" class="accent-fill"/>
+  <text x="640" y="507" text-anchor="middle" class="on-accent body" font-weight="600">Try again</text>
+
+  <text x="640" y="552" text-anchor="middle" class="subtle" font-size="13">If this keeps happening, contact your instance admin.</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg viewBox="0 0 375 812" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <style>
+    .surface { fill:#ffffff }
+    .raised { fill:#fafafa }
+    .sunken { fill:#f2f2f2 }
+    .border { stroke:#e2e2e2; stroke-width:1 }
+    .border-strong { stroke:#c9c9c9; stroke-width:1 }
+    .primary { fill:#1a1a1a }
+    .muted { fill:#6b6b6b }
+    .subtle { fill:#9a9a9a }
+    .accent-fill { fill:#111111 }
+    .on-accent { fill:#ffffff }
+    .caption { font-size:10px; letter-spacing:.06em; }
+    .body { font-size:14px; }
+    .heading { font-size:19px; font-weight:600; }
+  </style>
+
+  <rect width="375" height="812" class="surface"/>
+  <text x="12" y="806" class="subtle" font-size="10">Mobile ≤768px — empty state, reflow of screen 1</text>
+
+  <!-- top bar -->
+  <rect x="0" y="0" width="375" height="56" class="raised"/>
+  <line x1="0" y1="56" x2="375" y2="56" class="border"/>
+  <text x="16" y="34" class="primary" font-size="17" font-weight="700">Shopper</text>
+
+  <!-- centered empty state -->
+  <circle cx="187" cy="320" r="40" class="sunken"/>
+  <path d="M170 313 L204 313 L199 332 L175 332 Z" fill="none" class="border-strong" stroke-width="2"/>
+  <line x1="177" y1="313" x2="184" y2="300" class="border-strong" stroke-width="2"/>
+  <line x1="197" y1="313" x2="190" y2="300" class="border-strong" stroke-width="2"/>
+
+  <text x="187" y="388" text-anchor="middle" class="primary heading">Start your first list</text>
+  <text x="187" y="412" text-anchor="middle" class="muted body">Add items as you think of</text>
+  <text x="187" y="430" text-anchor="middle" class="muted body">them, then check them off</text>
+  <text x="187" y="448" text-anchor="middle" class="muted body">at the store.</text>
+
+  <rect x="107" y="472" width="160" height="44" rx="8" class="accent-fill"/>
+  <text x="187" y="499" text-anchor="middle" class="on-accent body" font-weight="600">Create list</text>
+
+  <text x="187" y="544" text-anchor="middle" class="subtle" font-size="12">Been invited to a list? Ask for</text>
+  <text x="187" y="560" text-anchor="middle" class="subtle" font-size="12">the share link — it'll show up</text>
+  <text x="187" y="576" text-anchor="middle" class="subtle" font-size="12">under "Shared with me".</text>
+
+  <!-- platform mobile nav placeholder (out of scope) -->
+  <rect x="0" y="756" width="375" height="56" class="sunken"/>
+  <text x="187" y="788" text-anchor="middle" class="subtle" font-size="11">Platform mobile nav — not part of this wireframe</text>
+</svg>

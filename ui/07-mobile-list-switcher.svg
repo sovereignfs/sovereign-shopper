@@ -1,0 +1,56 @@
+<svg viewBox="0 0 375 812" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <style>
+    .surface { fill:#ffffff }
+    .raised { fill:#fafafa }
+    .sunken { fill:#f2f2f2 }
+    .border { stroke:#e2e2e2; stroke-width:1 }
+    .border-strong { stroke:#c9c9c9; stroke-width:1 }
+    .primary { fill:#1a1a1a }
+    .muted { fill:#6b6b6b }
+    .subtle { fill:#9a9a9a }
+    .accent-fill { fill:#111111 }
+    .on-accent { fill:#ffffff }
+    .caption { font-size:10px; letter-spacing:.06em; }
+    .body { font-size:14px; }
+  </style>
+
+  <rect width="375" height="812" class="surface"/>
+  <text x="12" y="806" class="subtle" font-size="10">Mobile ≤768px — list switcher, reached via the back chevron in the list view</text>
+
+  <!-- top bar -->
+  <rect x="0" y="0" width="375" height="56" class="raised"/>
+  <line x1="0" y1="56" x2="375" y2="56" class="border"/>
+  <text x="16" y="34" class="primary" font-size="17" font-weight="700">Shopper</text>
+  <circle cx="352" cy="28" r="16" class="accent-fill"/>
+  <text x="352" y="33" text-anchor="middle" class="on-accent body" font-weight="700">+</text>
+
+  <text x="16" y="96" class="subtle caption" font-weight="600">MY LISTS</text>
+
+  <rect x="12" y="106" width="351" height="56" rx="10" class="sunken"/>
+  <text x="28" y="132" class="primary body" font-weight="600">Weekly groceries</text>
+  <text x="28" y="150" class="subtle" font-size="12">3 people · 5 items left</text>
+  <text x="348" y="140" text-anchor="end" class="subtle body">›</text>
+
+  <rect x="12" y="170" width="351" height="56" rx="10" fill="none" stroke="#e2e2e2"/>
+  <text x="28" y="196" class="primary body" font-weight="600">Costco run</text>
+  <text x="28" y="214" class="subtle" font-size="12">Just you · 8 items left</text>
+  <text x="348" y="204" text-anchor="end" class="subtle body">›</text>
+
+  <line x1="16" y1="250" x2="359" y2="250" class="border"/>
+  <text x="16" y="274" class="subtle caption" font-weight="600">SHARED WITH ME</text>
+
+  <rect x="12" y="284" width="351" height="56" rx="10" fill="none" stroke="#e2e2e2"/>
+  <text x="28" y="310" class="primary body" font-weight="600">Camping trip</text>
+  <text x="28" y="328" class="subtle" font-size="12">Shared by Alex R. · Can edit</text>
+  <text x="348" y="318" text-anchor="end" class="subtle body">›</text>
+
+  <line x1="16" y1="364" x2="359" y2="364" class="border"/>
+
+  <rect x="12" y="378" width="351" height="48" rx="10" class="raised"/>
+  <text x="28" y="407" class="primary body" font-weight="600">Combined view</text>
+  <text x="348" y="407" text-anchor="end" class="subtle body">›</text>
+
+  <!-- platform mobile nav placeholder (out of scope) -->
+  <rect x="0" y="756" width="375" height="56" class="sunken"/>
+  <text x="187" y="788" text-anchor="middle" class="subtle" font-size="11">Platform mobile nav — not part of this wireframe</text>
+</svg>
