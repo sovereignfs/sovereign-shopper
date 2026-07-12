@@ -9,6 +9,7 @@ import {
   shopperListShares,
   shopperLists,
   shopperProducts,
+  shopperPurchases,
   shopperUserState,
 } from '../_db/schema';
 import { suggestCategoryAndIcon } from './icons';
@@ -535,4 +536,68 @@ export async function deleteListItem(listId: string, itemId: string): Promise<vo
         eq(shopperListItems.tenantId, tenantId),
       ),
     );
+}
+
+/** Tap-to-buy (SHP-07): marks an item bought or reverses that. Marking bought
+ *  sets `checked_at` and writes a `shopper_purchases` row (buyer, time,
+ *  list, quantity, price from the linked product's `typical_price` if
+ *  known) — the data spine the household ledger and analytics (v0.2+) will
+ *  read from. Un-tapping clears `checked_at` and removes the purchase row
+ *  it created, so accidental taps leave no trace. Viewers are blocked. */
+export async function toggleItemBought(listId: string, itemId: string): Promise<void> {
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role === 'viewer') throw new Error("You don't have permission to edit this list.");
+
+  const { db, userId, tenantId } = await getContext();
+  const [item] = await db
+    .select()
+    .from(shopperListItems)
+    .where(and(eq(shopperListItems.id, itemId), eq(shopperListItems.listId, listId)))
+    .limit(1);
+  if (!item) throw new Error('Item not found.');
+
+  if (item.checkedAt) {
+    await db
+      .update(shopperListItems)
+      .set({ checkedAt: null })
+      .where(and(eq(shopperListItems.id, itemId), eq(shopperListItems.tenantId, tenantId)));
+    await db
+      .delete(shopperPurchases)
+      .where(
+        and(eq(shopperPurchases.listItemId, itemId), eq(shopperPurchases.tenantId, tenantId)),
+      );
+    return;
+  }
+
+  const ts = now();
+  let price: number | null = null;
+  if (item.productId) {
+    const [product] = await db
+      .select({ price: shopperProducts.typicalPrice })
+      .from(shopperProducts)
+      .where(eq(shopperProducts.id, item.productId))
+      .limit(1);
+    price = product?.price ?? null;
+  }
+
+  await db
+    .update(shopperListItems)
+    .set({ checkedAt: ts })
+    .where(and(eq(shopperListItems.id, itemId), eq(shopperListItems.tenantId, tenantId)));
+
+  await db.insert(shopperPurchases).values({
+    id: randomUUID(),
+    tenantId,
+    ownerUserId: list.ownerUserId,
+    listId,
+    listItemId: itemId,
+    productId: item.productId,
+    name: item.name,
+    quantity: item.quantity,
+    unit: item.unit,
+    price,
+    purchasedBy: userId,
+    purchasedAt: ts,
+  });
 }

@@ -107,20 +107,20 @@ data without a plan risks a destructive migration.
 
 - Consume `@sovereignfs/ui` components and `--sv-*` tokens exclusively.
 - Never hardcode colours, spacing, or radii — always reference tokens.
-- **DS-first: this plugin is a consumer.** Three primitives Phase 1 needed
-  didn't exist in `@sovereignfs/ui` — all now built there, not plugin-local:
-  1. **Checkable list row** (checkbox + icon + label + trailing stepper,
-     whole-row tap target, strikethrough-on-checked) — still open, needed
-     for T-08.
+- **DS-first: this plugin is a consumer.** All three primitives Phase 1
+  needed have landed in `@sovereignfs/ui`, none plugin-local:
+  1. ✅ **`CheckableListRow`** (whole-row tap target, strikethrough-on-checked,
+     T-08) — platform PR [#198](https://github.com/sovereignfs/sovereign/pull/198),
+     **still open/draft, not yet merged** — this repo's `workspace:*` link to
+     `@sovereignfs/ui` only resolves it while the `claude-sv` checkout is on
+     `feat/checkable-list-row` (or later, whatever it gets rebased onto once
+     merged).
   2. ✅ **`SuggestionInput`** (text input + anchored async result list, T-05)
      — platform PR [#194](https://github.com/sovereignfs/sovereign/pull/194),
      merged to `main`.
   3. ✅ **`QuantityStepper`** (numeric input with +/− and a unit suffix, T-07)
      — platform PR [#197](https://github.com/sovereignfs/sovereign/pull/197),
-     **still open/draft, not yet merged** — this repo's `workspace:*` link to
-     `@sovereignfs/ui` only resolves it while the `claude-sv` checkout is on
-     `feat/quantity-stepper` (or later, whatever it gets rebased onto once
-     merged).
+     merged to `main`.
 
   Also added, ahead of the original three: ✅ **`IconPicker`** (T-06,
   platform PR [#195](https://github.com/sovereignfs/sovereign/pull/195)) plus
@@ -129,12 +129,18 @@ data without a plan risks a destructive migration.
   #195 was stacked on #194's branch, and merging #194 into `main` didn't
   retarget it, so it landed on the wrong branch and needed a follow-up
   cherry-pick PR. **Lesson: base new platform-repo PRs directly on `main`,
-  don't stack on another open draft** — #197 already followed this.
+  don't stack on another open draft** — #197 and #198 both followed this.
 
   See [UI.md](UI.md#engineering-notes) for the full rationale. Do not
   hand-roll plugin-local versions "to be promoted later" — that's exactly
   the pattern `sovereign-tasks`' `TaskItem.tsx` fell into and UI.md flags as
   a mistake not to repeat.
+- **Tap-to-buy's tap target is the row body, not a separate control**
+  (SHP-07, T-08): `CheckableListRow`'s whole row toggles bought/not-bought.
+  Editing therefore needed its own affordance — a pencil `<Link
+  href="?item=...">` in the row's `trailing` slot (`ItemRow.tsx`) — rather
+  than sharing the row click the way T-07 originally wired it (fixed as part
+  of T-08, since T-08 is what defines the row-tap interaction per SPEC.md).
 - **Layout**: list switcher (sidebar on desktop, its own screen on mobile,
   ≤768px canonical breakpoint — use `useIsMobile`/`MOBILE_BREAKPOINT_PX`
   from `@sovereignfs/ui`, never a plugin-local number) + a content pane for

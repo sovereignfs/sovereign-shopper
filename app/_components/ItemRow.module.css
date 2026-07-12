@@ -1,0 +1,24 @@
+.trailing {
+  display: flex;
+  align-items: center;
+  gap: var(--sv-space-2);
+}
+
+.quantity {
+  font-size: var(--sv-font-size-sm);
+  color: var(--sv-color-text-muted);
+  white-space: nowrap;
+}
+
+.editLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sv-touch-target-min);
+  height: var(--sv-touch-target-min);
+  color: var(--sv-color-text-subtle);
+}
+
+.editLink:hover {
+  color: var(--sv-color-text-primary);
+}
