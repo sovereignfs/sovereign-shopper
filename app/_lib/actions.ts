@@ -12,7 +12,14 @@ import {
   shopperUserState,
 } from '../_db/schema';
 import { suggestCategoryAndIcon } from './icons';
-import type { CombinedItemRow, ListItemRow, ListRow, ProductSuggestion, SharedListRow } from './types';
+import type {
+  CombinedItemRow,
+  ListItemDetail,
+  ListItemRow,
+  ListRow,
+  ProductSuggestion,
+  SharedListRow,
+} from './types';
 
 /** Trimmed, lowercased form used for catalog dedupe/matching (SHP-04). */
 function normalize(name: string): string {
@@ -389,4 +396,143 @@ export async function addItemToList(listId: string, name: string): Promise<void>
     addedBy: userId,
     createdAt: ts,
   });
+}
+
+/** Full edit-form detail for one item (SHP-06, T-07) — joins in the linked
+ *  product's barcode/price, which don't live on the list-item row itself.
+ *  Returns null if the item doesn't exist, isn't on this list, or the
+ *  caller can't access the list. */
+export async function getListItemDetail(
+  listId: string,
+  itemId: string,
+): Promise<ListItemDetail | null> {
+  const list = await getList(listId);
+  if (!list) return null;
+
+  const { db, tenantId } = await getContext();
+  const [item] = await db
+    .select()
+    .from(shopperListItems)
+    .where(
+      and(
+        eq(shopperListItems.id, itemId),
+        eq(shopperListItems.listId, listId),
+        eq(shopperListItems.tenantId, tenantId),
+      ),
+    )
+    .limit(1);
+  if (!item) return null;
+
+  let barcode: string | null = null;
+  let price: number | null = null;
+  if (item.productId) {
+    const [product] = await db
+      .select({ barcode: shopperProducts.barcode, price: shopperProducts.typicalPrice })
+      .from(shopperProducts)
+      .where(eq(shopperProducts.id, item.productId))
+      .limit(1);
+    if (product) {
+      barcode = product.barcode;
+      price = product.price;
+    }
+  }
+
+  return {
+    id: item.id,
+    name: item.name,
+    quantity: item.quantity,
+    unit: item.unit,
+    category: item.category,
+    icon: item.icon,
+    checkedAt: item.checkedAt,
+    sortOrder: item.sortOrder,
+    productId: item.productId,
+    barcode,
+    price,
+  };
+}
+
+export interface UpdateListItemInput {
+  name: string;
+  quantity: string;
+  unit: string | null;
+  category: string | null;
+  icon: string | null;
+  barcode: string | null;
+  /** Cents, or null to clear. */
+  price: number | null;
+}
+
+/** Saves item edits (SHP-06). Updates the list-item row itself (name,
+ *  quantity, unit, category, icon) and, when the item is linked to a
+ *  catalog product, the product row too (name, category, icon, default
+ *  unit, barcode, price) — "the next add of the same item is pre-filled"
+ *  per SPEC.md. Viewers are blocked, same rule as every other write. */
+export async function updateListItem(
+  listId: string,
+  itemId: string,
+  input: UpdateListItemInput,
+): Promise<void> {
+  const trimmed = input.name.trim();
+  if (!trimmed) throw new Error('Item name is required.');
+
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role === 'viewer') throw new Error("You don't have permission to edit this list.");
+
+  const { db, tenantId } = await getContext();
+  const ts = now();
+
+  const [item] = await db
+    .select({ productId: shopperListItems.productId })
+    .from(shopperListItems)
+    .where(and(eq(shopperListItems.id, itemId), eq(shopperListItems.listId, listId)))
+    .limit(1);
+  if (!item) throw new Error('Item not found.');
+
+  await db
+    .update(shopperListItems)
+    .set({
+      name: trimmed,
+      quantity: input.quantity,
+      unit: input.unit,
+      category: input.category,
+      icon: input.icon,
+    })
+    .where(and(eq(shopperListItems.id, itemId), eq(shopperListItems.tenantId, tenantId)));
+
+  if (item.productId) {
+    await db
+      .update(shopperProducts)
+      .set({
+        name: trimmed,
+        normalizedName: normalize(trimmed),
+        category: input.category,
+        icon: input.icon,
+        defaultUnit: input.unit,
+        barcode: input.barcode,
+        typicalPrice: input.price,
+        updatedAt: ts,
+      })
+      .where(and(eq(shopperProducts.id, item.productId), eq(shopperProducts.tenantId, tenantId)));
+  }
+}
+
+/** Removes an item from the list (not the catalog product behind it, which
+ *  stays for future suggestions). Viewers are blocked. */
+export async function deleteListItem(listId: string, itemId: string): Promise<void> {
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role === 'viewer') throw new Error("You don't have permission to edit this list.");
+
+  const { db, tenantId } = await getContext();
+  await db
+    .delete(shopperListItems)
+    .where(
+      and(
+        eq(shopperListItems.id, itemId),
+        eq(shopperListItems.listId, listId),
+        eq(shopperListItems.tenantId, tenantId),
+      ),
+    );
 }

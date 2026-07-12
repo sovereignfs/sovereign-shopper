@@ -80,8 +80,14 @@ tag so the roll-up doesn't lose provenance.
 
 ![Item edit sheet](ui/04-item-edit-sheet.svg)
 
-A `Sheet` (not `Dialog`), matching `packages/ui`'s existing distinction: no
-scrim, background list stays visible so the user keeps context. Barcode and
+**Built as a `Dialog`, not a `Sheet`** (T-07 correction — this wireframe
+predates the discovery): `Sheet`'s own doc comment says it's "for the mobile
+case specifically" with no desktop equivalent presentation, so using it here
+would have left desktop with nothing. `Dialog` already auto-adapts mobile to
+a full-screen overlay, covering both breakpoints from one component. The
+wireframe's content layout (fields, optional hints, actions) still matches
+what shipped — only the surrounding chrome differs from what's drawn here.
+Barcode and
 price are explicitly labeled "optional" with a one-line explanation of what's
 coming later for barcode — this is progressive disclosure of a Phase 4
 feature without hiding the field entirely (the SPEC data model already has
@@ -192,12 +198,11 @@ implemented today.
 
 ## Open questions
 
-1. **Icon set** (SPEC open question 4) — curated grocery-category icon
-   set needs sourcing/licensing before `IconPicker.tsx` is buildable. Blocks
-   T-06.
-2. **Quantity stepper unit list** — is the unit dropdown a fixed enum
-   (pcs/kg/g/L/ml/bag/bundle/…) or free text with autocomplete from past
-   entries? Wireframe assumes a fixed short list; confirm before building.
+1. ✅ **Icon set** (SPEC open question 4) — resolved T-06: real curated Lucide
+   SVG icons via `@sovereignfs/ui`'s `IconPicker`, not emoji.
+2. ✅ **Quantity stepper unit list** — resolved T-07: fixed short list
+   (pcs/kg/g/lb/L/mL/bag/box/bunch/pack/dozen) via a plain `Select`, not free
+   text with autocomplete.
 3. **New-component ownership** — do the three new primitives land in
    `packages/ui` before or alongside Shopper's Phase 1 PRs? Recommend
    building them in `packages/ui` as part of the same roadmap tasks (T-05,

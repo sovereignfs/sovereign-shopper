@@ -108,42 +108,51 @@ data without a plan risks a destructive migration.
 - Consume `@sovereignfs/ui` components and `--sv-*` tokens exclusively.
 - Never hardcode colours, spacing, or radii — always reference tokens.
 - **DS-first: this plugin is a consumer.** Three primitives Phase 1 needed
-  didn't exist in `@sovereignfs/ui` — built there, not plugin-local:
+  didn't exist in `@sovereignfs/ui` — all now built there, not plugin-local:
   1. **Checkable list row** (checkbox + icon + label + trailing stepper,
      whole-row tap target, strikethrough-on-checked) — still open, needed
      for T-08.
   2. ✅ **`SuggestionInput`** (text input + anchored async result list, T-05)
-     — platform PR [#194](https://github.com/sovereignfs/sovereign/pull/194).
-  3. **Quantity stepper** (numeric input with +/− and a unit suffix) — still
-     open, needed for T-07.
+     — platform PR [#194](https://github.com/sovereignfs/sovereign/pull/194),
+     merged to `main`.
+  3. ✅ **`QuantityStepper`** (numeric input with +/− and a unit suffix, T-07)
+     — platform PR [#197](https://github.com/sovereignfs/sovereign/pull/197),
+     **still open/draft, not yet merged** — this repo's `workspace:*` link to
+     `@sovereignfs/ui` only resolves it while the `claude-sv` checkout is on
+     `feat/quantity-stepper` (or later, whatever it gets rebased onto once
+     merged).
 
   Also added, ahead of the original three: ✅ **`IconPicker`** (T-06,
-  platform PR [#195](https://github.com/sovereignfs/sovereign/pull/195),
-  stacked on #194) plus 21 curated grocery-item/category icons in
-  `@sovereignfs/ui`'s `Icon` set.
+  platform PR [#195](https://github.com/sovereignfs/sovereign/pull/195)) plus
+  21 curated grocery-item/category icons in `@sovereignfs/ui`'s `Icon` set —
+  merged to `main`, but via [#196](https://github.com/sovereignfs/sovereign/pull/196):
+  #195 was stacked on #194's branch, and merging #194 into `main` didn't
+  retarget it, so it landed on the wrong branch and needed a follow-up
+  cherry-pick PR. **Lesson: base new platform-repo PRs directly on `main`,
+  don't stack on another open draft** — #197 already followed this.
 
   See [UI.md](UI.md#engineering-notes) for the full rationale. Do not
   hand-roll plugin-local versions "to be promoted later" — that's exactly
   the pattern `sovereign-tasks`' `TaskItem.tsx` fell into and UI.md flags as
-  a mistake not to repeat. **Both landed PRs are drafts, not yet merged** —
-  this repo's `workspace:*` link to `@sovereignfs/ui` only resolves them
-  while the `claude-sv` checkout is on `feat/suggestion-input` or
-  `feat/grocery-category-icons` (or later, whatever they get rebased onto
-  once merged).
+  a mistake not to repeat.
 - **Layout**: list switcher (sidebar on desktop, its own screen on mobile,
   ≤768px canonical breakpoint — use `useIsMobile`/`MOBILE_BREAKPOINT_PX`
   from `@sovereignfs/ui`, never a plugin-local number) + a content pane for
-  the active list. Item editing is a `Sheet` overlay (no scrim, background
-  list stays visible), not a persistent detail pane — see UI.md screen 4.
-  Sharing is a `Dialog` (scrim, centered, auto-adapts to a full overlay on
-  mobile) — see UI.md screen 5.
+  the active list. **Item editing is a `Dialog` (T-07), not a `Sheet`** —
+  UI.md screen 4 originally speced a `Sheet`, but `Sheet`'s own doc comment
+  says it's "for the mobile case specifically" with "no equivalent
+  presentation" on desktop, discovered while implementing T-07; `Dialog`
+  already auto-adapts mobile to a full-screen overlay, covering both
+  breakpoints without a bespoke desktop layout. Sharing is also a `Dialog`
+  (scrim, centered, auto-adapts to a full overlay on mobile) — see UI.md
+  screen 5.
 - **Icon set resolved** (SPEC.md open question 4 / UI.md open question 1,
   T-06): real curated Lucide SVG icons via `IconPicker`, not emoji. Category
   + keyword-match logic lives in `app/_lib/icons.ts`
   (`suggestCategoryAndIcon`, `resolveIcon`); `addItemToList` auto-assigns an
-  icon+category by name keyword when a new catalog product is created —
-  `IconPicker` itself isn't wired into a page yet, that's T-07's job (the
-  edit sheet).
+  icon+category by name keyword when a new catalog product is created;
+  `IconPicker` itself is wired into the edit dialog (T-07,
+  `ItemEditDialog.tsx`) so a user can override the guess.
 - Every mutation needs an inline pending label and expected-error path
   (`useActionState`, shared `ActionResult` convention) — never let a thrown
   error blow past to the platform 500. `app/error.tsx` is required (see
@@ -184,12 +193,14 @@ installed via `sv plugin add` and the platform hot-reloads it.
 ## Open questions (from SPEC.md and UI.md)
 
 1. ✅ **Icon set** — resolved T-06, see UI rules above.
-2. **Quantity stepper unit list** — fixed enum vs. free text with
-   autocomplete, confirm before building (T-07).
+2. ✅ **Quantity stepper unit list** — resolved T-07: a fixed short list
+   (pcs/kg/g/lb/L/mL/bag/box/bunch/pack/dozen) via a plain `Select`, not free
+   text with autocomplete. `QuantityStepper` itself only owns the numeric
+   part — swapping the unit list later doesn't touch that component.
 3. ✅ **New-component ownership** — resolved by precedent: `SuggestionInput`
-   (T-05) and `IconPicker` (T-06) both landed as platform-repo draft PRs
-   opened from this plugin's own roadmap work, not a separate prerequisite
-   task. Same pattern applies to the still-open checkable-list-row and
-   quantity-stepper primitives.
+   (T-05), `IconPicker` (T-06), and `QuantityStepper` (T-07) all landed as
+   platform-repo PRs opened from this plugin's own roadmap work, not a
+   separate prerequisite task. Same pattern applies to the still-open
+   checkable-list-row primitive (T-08).
 4. **Phase 1 → Phase 2 migration mechanics** — design before starting v0.2
    (roadmap T-12).

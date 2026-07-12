@@ -37,6 +37,16 @@ export interface ListItemRow {
   sortOrder: number;
 }
 
+/** Full edit-form shape for one item (SHP-06, T-07) — the list-item row plus
+ *  its linked catalog product's barcode/price, which live on
+ *  `shopper_products` (not per-list-item). Saving writes back to both. */
+export interface ListItemDetail extends ListItemRow {
+  productId: string | null;
+  barcode: string | null;
+  /** Cents, or null if never set. */
+  price: number | null;
+}
+
 /** A list shared with the current user by someone else (SHP-02). */
 export interface SharedListRow {
   id: string;

@@ -1,0 +1,60 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sv-space-4);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sv-space-3);
+  align-items: end;
+}
+
+.error {
+  margin: 0;
+  padding: var(--sv-space-2) var(--sv-space-3);
+  border: 1px solid var(--sv-color-error-border);
+  border-radius: var(--sv-radius-md);
+  background: var(--sv-color-error-surface);
+  color: var(--sv-color-error-text);
+  font-size: var(--sv-font-size-sm);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sv-space-3);
+  margin-top: var(--sv-space-2);
+}
+
+.remove {
+  all: unset;
+  color: var(--sv-color-error-text);
+  font-size: var(--sv-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.save {
+  all: unset;
+  padding: var(--sv-space-2) var(--sv-space-5);
+  border-radius: var(--sv-radius-md);
+  background: var(--sv-color-accent);
+  color: var(--sv-color-text-on-accent);
+  font-size: var(--sv-font-size-sm);
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
