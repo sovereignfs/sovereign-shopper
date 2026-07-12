@@ -141,6 +141,21 @@ data without a plan risks a destructive migration.
   href="?item=...">` in the row's `trailing` slot (`ItemRow.tsx`) — rather
   than sharing the row click the way T-07 originally wired it (fixed as part
   of T-08, since T-08 is what defines the row-tap interaction per SPEC.md).
+- **Manual reorder (SHP-08, T-09) is up/down buttons, not drag.** SPEC only
+  requires "manual reorder (sort_order)" — it doesn't mandate drag-and-drop.
+  Up/down chevrons in `ItemRow.tsx`'s trailing slot swap `sort_order` with
+  the adjacent item **within the same category group** (`swapItemOrder` in
+  actions.ts), not the whole list — dragging across a category boundary has
+  no defined "change category" semantics, so reorder only ever happens
+  inside one group. This avoids pulling in `dnd-kit` (as `sovereign-tasks`
+  does) purely for this; drag can still be added later as a UX polish pass
+  without changing `swapItemOrder`'s contract.
+- **Category groups derive from `groupItemsByCategory`** (`app/_lib/group.ts`,
+  pure, no DB access) — groups order by first-appearance in `sort_order`,
+  with "Uncategorized" (`category: null`) always sorted last regardless of
+  when those items were added. Bought items never appear in a category
+  group — they move to `BoughtSection.tsx`'s own collapsed list the moment
+  `checked_at` is set (see tap-to-buy above).
 - **Layout**: list switcher (sidebar on desktop, its own screen on mobile,
   ≤768px canonical breakpoint — use `useIsMobile`/`MOBILE_BREAKPOINT_PX`
   from `@sovereignfs/ui`, never a plugin-local number) + a content pane for

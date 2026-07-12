@@ -7,9 +7,22 @@
   margin: var(--sv-space-4) 0;
 }
 
+.group {
+  margin-top: var(--sv-space-4);
+}
+
+.groupLabel {
+  margin: 0 0 var(--sv-space-1);
+  font-size: var(--sv-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sv-color-text-subtle);
+}
+
 .items {
   list-style: none;
-  margin: var(--sv-space-4) 0 0;
+  margin: 0;
   padding: 0;
   border-top: 1px solid var(--sv-color-border);
 }

@@ -22,3 +22,23 @@
 .editLink:hover {
   color: var(--sv-color-text-primary);
 }
+
+.moveButton {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sv-touch-target-min);
+  height: var(--sv-touch-target-min);
+  color: var(--sv-color-text-subtle);
+  cursor: pointer;
+}
+
+.moveButton:hover:not(:disabled) {
+  color: var(--sv-color-text-primary);
+}
+
+.moveButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

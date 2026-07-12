@@ -1,7 +1,7 @@
 'use server';
 
 import { sdk } from '@sovereignfs/sdk';
-import { and, asc, desc, eq, inArray, isNull, like } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, isNull, like } from 'drizzle-orm';
 import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 import { randomUUID } from 'node:crypto';
 import {
@@ -600,4 +600,76 @@ export async function toggleItemBought(listId: string, itemId: string): Promise<
     purchasedBy: userId,
     purchasedAt: ts,
   });
+}
+
+/** Removes every bought item from the list (SHP-08). Their purchase history
+ *  stays — this only tidies the active list, it isn't undoing the buy — but
+ *  each surviving `shopper_purchases` row has its `list_item_id` cleared
+ *  first so nothing dangles once the item row it pointed at is gone. */
+export async function clearBoughtItems(listId: string): Promise<void> {
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role === 'viewer') throw new Error("You don't have permission to edit this list.");
+
+  const { db, tenantId } = await getContext();
+  const bought = await db
+    .select({ id: shopperListItems.id })
+    .from(shopperListItems)
+    .where(
+      and(
+        eq(shopperListItems.listId, listId),
+        eq(shopperListItems.tenantId, tenantId),
+        isNotNull(shopperListItems.checkedAt),
+      ),
+    );
+  const boughtIds = bought.map((r) => r.id);
+  if (boughtIds.length === 0) return;
+
+  await db
+    .update(shopperPurchases)
+    .set({ listItemId: null })
+    .where(
+      and(inArray(shopperPurchases.listItemId, boughtIds), eq(shopperPurchases.tenantId, tenantId)),
+    );
+
+  await db
+    .delete(shopperListItems)
+    .where(and(inArray(shopperListItems.id, boughtIds), eq(shopperListItems.tenantId, tenantId)));
+}
+
+/** Swaps two items' manual order (SHP-08) — the caller (the grouped list
+ *  view) determines which two ids are adjacent within a category group;
+ *  this just exchanges their `sort_order` values. */
+export async function swapItemOrder(
+  listId: string,
+  itemIdA: string,
+  itemIdB: string,
+): Promise<void> {
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role === 'viewer') throw new Error("You don't have permission to edit this list.");
+
+  const { db, tenantId } = await getContext();
+  const rows = await db
+    .select({ id: shopperListItems.id, sortOrder: shopperListItems.sortOrder })
+    .from(shopperListItems)
+    .where(
+      and(
+        inArray(shopperListItems.id, [itemIdA, itemIdB]),
+        eq(shopperListItems.listId, listId),
+        eq(shopperListItems.tenantId, tenantId),
+      ),
+    );
+  const a = rows.find((r) => r.id === itemIdA);
+  const b = rows.find((r) => r.id === itemIdB);
+  if (!a || !b) return;
+
+  await db
+    .update(shopperListItems)
+    .set({ sortOrder: b.sortOrder })
+    .where(eq(shopperListItems.id, a.id));
+  await db
+    .update(shopperListItems)
+    .set({ sortOrder: a.sortOrder })
+    .where(eq(shopperListItems.id, b.id));
 }
