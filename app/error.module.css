@@ -1,0 +1,27 @@
+.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sv-space-3);
+  min-height: 100%;
+  padding: var(--sv-space-8);
+  text-align: center;
+}
+
+.heading {
+  font-size: var(--sv-font-size-xl);
+  font-weight: 600;
+  color: var(--sv-color-text-primary);
+}
+
+.description {
+  max-width: 32ch;
+  color: var(--sv-color-text-muted);
+  font-size: var(--sv-font-size-sm);
+}
+
+.hint {
+  color: var(--sv-color-text-subtle);
+  font-size: var(--sv-font-size-xs);
+}

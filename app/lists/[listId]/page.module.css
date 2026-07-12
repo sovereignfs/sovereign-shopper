@@ -1,0 +1,9 @@
+.page {
+  padding: var(--sv-space-6);
+}
+
+.placeholder {
+  margin-top: var(--sv-space-4);
+  color: var(--sv-color-text-muted);
+  font-size: var(--sv-font-size-sm);
+}

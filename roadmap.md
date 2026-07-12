@@ -39,7 +39,7 @@ No platform blockers — `sdk.auth`, `sdk.db`, `sdk.directory`, and
 | ID | Task | Depends on | Status |
 | --- | --- | --- | --- |
 | T-01 | DB schema: `shopper_lists`, `shopper_list_shares`, `shopper_products`, `shopper_list_items`, `shopper_purchases`, `shopper_user_state` (Phase 1 shape — `owner_user_id`-scoped, `household_id` columns present but nullable/unused). Migration + Drizzle schema file. | T-00 | ✅ |
-| T-02 | List CRUD: create a list (owner = creator), rename, archive. Landing page falls back to an empty state when the user has no lists yet (SHP-01). | T-01 | ⬜ |
+| T-02 | List CRUD: create a list (owner = creator), rename, archive. Landing page falls back to an empty state when the user has no lists yet (SHP-01). | T-01 | ✅ |
 | T-03 | List switcher: own lists + lists shared with the user; opt-in combined read-only roll-up view (SHP-02). Resolve SPEC open question 5 (confirm read-only is sufficient for Phase 1) before building. | T-02 | ⬜ |
 | T-04 | Last-used-list landing page, backed by `shopper_user_state` (SHP-03). | T-02 | ⬜ |
 | T-05 | Add-item bar with type-ahead suggestions sourced from `shopper_products` (owner-scoped catalog) + purchase history; one-tap quick-add (SHP-04). | T-01 | ⬜ |

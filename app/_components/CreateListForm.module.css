@@ -1,0 +1,36 @@
+.form {
+  display: flex;
+  gap: var(--sv-space-2);
+}
+
+/* Mirrors @sovereignfs/ui's Input styling — a native <input> is used here
+   instead of the Input component because Input isn't ref-forwarding, and
+   this field needs an imperative focus() on reveal (jsx-a11y/no-autofocus
+   forbids the autoFocus attribute). */
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sv-space-2) var(--sv-space-3);
+  font-family: var(--sv-font-family);
+  font-size: var(--sv-font-size-sm);
+  line-height: 1.5;
+  color: var(--sv-color-text-primary);
+  background-color: var(--sv-color-surface);
+  border: 1px solid var(--sv-color-border-strong);
+  border-radius: var(--sv-radius-md);
+}
+
+.input::placeholder {
+  color: var(--sv-color-text-muted);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--sv-color-accent);
+  box-shadow: 0 0 0 2px var(--sv-color-focus-ring);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
