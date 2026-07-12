@@ -1,18 +1,20 @@
+import { redirect } from 'next/navigation';
 import { EmptyState } from '@sovereignfs/ui';
-import { getLists } from './_lib/actions';
+import { getAccessibleLists, getLastListId, getList } from './_lib/actions';
 import CreateListForm from './_components/CreateListForm';
 import styles from './page.module.css';
 
 /**
- * Landing page. Falls back to an empty state when the user has no lists yet
- * (SHP-01). Redirecting to the last-used list when lists exist is T-04's
- * job — for now, having 1+ lists just prompts the user to pick one from the
- * sidebar.
+ * Landing page. Falls back to an empty state when the user has no accessible
+ * lists yet (SHP-01). Otherwise redirects to the last-opened list (SHP-03,
+ * `shopper_user_state.last_list_id`, recorded by the list detail page on
+ * every visit); if that list is gone (archived/unshared) or never set,
+ * falls back to the first accessible list instead of erroring.
  */
 export default async function ShopperHomePage() {
-  const lists = await getLists();
+  const accessible = await getAccessibleLists();
 
-  if (lists.length === 0) {
+  if (accessible.length === 0) {
     return (
       <div className={styles.centered}>
         <EmptyState
@@ -25,9 +27,13 @@ export default async function ShopperHomePage() {
     );
   }
 
-  return (
-    <div className={styles.centered}>
-      <EmptyState heading="Choose a list" description="Pick a list from the sidebar to open it." />
-    </div>
-  );
+  const lastListId = await getLastListId();
+  if (lastListId) {
+    const lastList = await getList(lastListId);
+    if (lastList) redirect(`/shopper/lists/${lastList.id}`);
+  }
+
+  const [fallback] = accessible;
+  if (fallback) redirect(`/shopper/lists/${fallback.id}`);
+  return null;
 }

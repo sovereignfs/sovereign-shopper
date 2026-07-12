@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@sovereignfs/ui';
-import { getList } from '../../_lib/actions';
+import { getList, setLastList } from '../../_lib/actions';
 import ListHeaderActions from '../../_components/ListHeaderActions';
 import styles from './page.module.css';
 
@@ -12,12 +12,15 @@ interface Props {
  * List detail. Phase 1 (T-02/T-03) ships the header + rename/archive (owner
  * only) here — the item ledger (add/edit/check-off, T-05–T-09) lands in
  * later tasks. Accessible to a shared editor/viewer too (SHP-02), just
- * without the owner-only controls.
+ * without the owner-only controls. Records itself as the last-opened list
+ * (SHP-03) on every visit, so `/shopper` redirects back here next time.
  */
 export default async function ListDetailPage({ params }: Props) {
   const { listId } = await params;
   const list = await getList(listId);
   if (!list) notFound();
+
+  await setLastList(listId);
 
   return (
     <div className={styles.page}>

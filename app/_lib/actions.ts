@@ -4,7 +4,7 @@ import { sdk } from '@sovereignfs/sdk';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 import { randomUUID } from 'node:crypto';
-import { shopperListItems, shopperListShares, shopperLists } from '../_db/schema';
+import { shopperListItems, shopperListShares, shopperLists, shopperUserState } from '../_db/schema';
 import type { CombinedItemRow, ListRow, SharedListRow } from './types';
 
 // DrizzleClient is typed as `unknown` in the SDK (dialect-agnostic contract).
@@ -157,6 +157,34 @@ export async function getCombinedItems(): Promise<CombinedItemRow[]> {
     sourceListId: row.listId,
     sourceListName: listNameById.get(row.listId) ?? 'Unknown list',
   }));
+}
+
+/** The current user's last-opened list id (SHP-03), or null if never set or
+ *  no `shopper_user_state` row exists yet. */
+export async function getLastListId(): Promise<string | null> {
+  const { db, userId, tenantId } = await getContext();
+  const [row] = await db
+    .select({ lastListId: shopperUserState.lastListId })
+    .from(shopperUserState)
+    .where(and(eq(shopperUserState.userId, userId), eq(shopperUserState.tenantId, tenantId)))
+    .limit(1);
+  return row?.lastListId ?? null;
+}
+
+/** Records the list the current user just opened, for SHP-03's landing
+ *  redirect. Called from the list detail page on every visit — idempotent
+ *  upsert, not gated on ownership since a shared list can be "last used"
+ *  too. */
+export async function setLastList(listId: string): Promise<void> {
+  const { db, userId, tenantId } = await getContext();
+  const ts = now();
+  await db
+    .insert(shopperUserState)
+    .values({ userId, tenantId, lastListId: listId, updatedAt: ts })
+    .onConflictDoUpdate({
+      target: shopperUserState.userId,
+      set: { lastListId: listId, updatedAt: ts },
+    });
 }
 
 export async function createList(name: string): Promise<string> {
