@@ -7,38 +7,62 @@ import { createList } from '../_lib/actions';
 import styles from './CreateListForm.module.css';
 
 interface Props {
-  /** 'inline' renders a compact input+button row (sidebar "+ New list").
+  /** 'inline' defaults to open when uncontrolled (unused now that Sidebar
+   *  always controls it — kept for a hypothetical uncontrolled consumer).
    *  'cta' renders a single button that reveals the input on click, for use
    *  as an EmptyState action. */
   variant?: 'inline' | 'cta';
   className?: string;
+  /** Controlled open state — omit to let the component manage its own.
+   *  Sidebar's header "+" button controls this externally (sovereign-tasks'
+   *  ListSidebar pattern: click "+", a plain input appears above the list,
+   *  Enter creates and collapses it again, Escape/blur-while-empty cancels)
+   *  so nothing here renders its own trigger button when controlled — the
+   *  caller owns that. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function CreateListForm({ variant = 'inline', className }: Props) {
+export default function CreateListForm({
+  variant = 'inline',
+  className,
+  open: openProp,
+  onOpenChange,
+}: Props) {
   const router = useRouter();
-  const [open, setOpen] = useState(variant === 'inline');
+  const isControlled = openProp !== undefined;
+  const [openState, setOpenState] = useState(variant === 'inline');
+  const open = isControlled ? openProp : openState;
   const [name, setName] = useState('');
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (open && variant === 'cta') inputRef.current?.focus();
-  }, [open, variant]);
+  function setOpen(next: boolean) {
+    if (isControlled) onOpenChange?.(next);
+    else setOpenState(next);
+  }
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
+
+  function submit(e?: React.FormEvent) {
+    e?.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
     startTransition(async () => {
       const id = await createList(trimmed);
       setName('');
-      if (variant === 'cta') setOpen(false);
+      setOpen(false);
       router.push(`/shopper/lists/${id}`);
       router.refresh();
     });
   }
 
   if (!open) {
+    // A controlled instance never renders its own trigger — the caller
+    // (Sidebar's header "+" button) owns that.
+    if (isControlled) return null;
     return (
       <Button type="button" onClick={() => setOpen(true)} className={className}>
         Create list
@@ -53,13 +77,19 @@ export default function CreateListForm({ variant = 'inline', className }: Props)
         className={styles.input}
         value={name}
         onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setName('');
+            setOpen(false);
+          }
+        }}
+        onBlur={() => {
+          if (!name.trim()) setOpen(false);
+        }}
         placeholder="List name"
         aria-label="List name"
         disabled={pending}
       />
-      <Button type="submit" loading={pending} disabled={!name.trim()}>
-        Create
-      </Button>
     </form>
   );
 }

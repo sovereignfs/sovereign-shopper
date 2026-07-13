@@ -1,0 +1,80 @@
+.subtitle {
+  margin: 0 0 var(--sv-space-4);
+  color: var(--sv-color-text-muted);
+  font-size: var(--sv-font-size-sm);
+}
+
+.divider {
+  margin: var(--sv-space-4) 0;
+  border-top: 1px solid var(--sv-color-border);
+}
+
+.sectionLabel {
+  margin: 0 0 var(--sv-space-2);
+  font-size: var(--sv-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sv-color-text-subtle);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sv-space-2);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sv-space-2);
+}
+
+.identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-size: var(--sv-font-size-sm);
+  color: var(--sv-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ownerBadge {
+  font-size: var(--sv-font-size-xs);
+  color: var(--sv-color-text-subtle);
+}
+
+.remove {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sv-touch-target-min);
+  height: var(--sv-touch-target-min);
+  color: var(--sv-color-text-subtle);
+  cursor: pointer;
+}
+
+.remove:hover:not(:disabled) {
+  color: var(--sv-color-error-text);
+}
+
+.remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--sv-space-4);
+}

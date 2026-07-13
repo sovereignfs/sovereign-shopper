@@ -2,8 +2,22 @@
   padding: var(--sv-space-6);
 }
 
+/* No max-width — the item rows below (`.items`/`.item`) don't cap their
+   width either, so a fixed-width add bar looked stubby next to them on wide
+   panes; matching the input to the rows' full width reads as one column.
+   `display: flex; flex-direction: column` is load-bearing, not decoration:
+   SuggestionInput's root is a Popover `.container` (`display: inline-flex`,
+   shrink-wrapped to the input's intrinsic width) — a flex item's own width
+   only stretches via the *cross* axis's default `align-items: stretch`,
+   which only affects width when the flex container's main axis is vertical
+   (`flex-direction: column`); a default `row` container's main axis IS
+   width, which doesn't auto-stretch without an explicit `flex-grow`. Column
+   direction gets the same result for a single child without needing a
+   child-combinator selector to reach into Popover's own (differently
+   CSS-Modules-scoped) class. */
 .addBar {
-  max-width: 480px;
+  display: flex;
+  flex-direction: column;
   margin: var(--sv-space-4) 0;
 }
 
@@ -25,9 +39,4 @@
   margin: 0;
   padding: 0;
   border-top: 1px solid var(--sv-color-border);
-}
-
-.item {
-  padding: var(--sv-space-1) 0;
-  border-bottom: 1px solid var(--sv-color-border);
 }

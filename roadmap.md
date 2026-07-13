@@ -46,12 +46,24 @@ No platform blockers — `sdk.auth`, `sdk.db`, `sdk.directory`, and
 | T-06 | Per-item icon: curated icon set + category-mapped fallback (`lib/icons.ts`, `IconPicker.tsx`). Resolve SPEC open question 4 (confirm curated set is sufficient for Phase 1) before building. (SHP-05) | T-05 | ✅ (open question 4 resolved: real SVG icons, not emoji — 21 curated grocery icons + `IconPicker` DS component added to `@sovereignfs/ui`, platform PR [#195](https://github.com/sovereignfs/sovereign/pull/195) draft, stacked on #194; plugin's `lib/icons.ts` auto-assigns icon+category by name keyword at add-time, `IconPicker` itself is wired into item editing in T-07) |
 | T-07 | Item edit sheet: name, quantity, unit, category, icon, barcode, price; saving updates the linked `shopper_products` row (SHP-06). | T-05, T-06 | ✅ (built as a `Dialog`, not a `Sheet` — see CLAUDE.md UI rules; added `QuantityStepper` to `@sovereignfs/ui`, platform PR [#197](https://github.com/sovereignfs/sovereign/pull/197); resolves open question 2 as a fixed unit `Select`) |
 | T-08 | Tap-to-buy: mark item bought (`checked_at` + `shopper_purchases` row with buyer/time/list/quantity/price); un-tap reverses both (SHP-07). | T-07 | ✅ (added `CheckableListRow` to `@sovereignfs/ui` — platform PR [#198](https://github.com/sovereignfs/sovereign/pull/198), the last of the three originally-flagged missing primitives; row body is the toggle, editing moved to a separate pencil link so the two don't share a tap target) |
-| T-09 | Clear bought items; manual reorder (`sort_order`); group list view by category (SHP-08). | T-08 | ✅ (reorder implemented as up/down buttons scoped to each category group, not drag — no new `@sovereignfs/ui`/dependency needed; deferred drag as a later UX polish item, see CLAUDE.md) |
-| T-10 | Share dialog: pick a user via `sdk.directory`, grant `editor`/`viewer`, writes `shopper_list_shares`; owner can revoke (SHP-09). | T-02 | ⬜ |
-| T-11 | v0.1 hardening pass: owner/share-scoping test sweep (a viewer cannot write, a non-shared user cannot see the list), tenant-scoping sweep across all `shopper_*` tables, empty-state and revoke-share edge cases. | T-03, T-09, T-10 | ⬜ |
+| T-09 | Clear bought items; manual reorder (`sort_order`); group list view by category (SHP-08). | T-08 | ✅ (originally shipped as up/down buttons scoped to each category group; replaced with `dnd-kit` drag-and-drop after the buttons proved unreliable in practice — same per-category scoping, now structural via one `DndContext` per category rather than a UI choice; see CLAUDE.md "Manual reorder is drag-and-drop") |
+| T-10 | Share dialog: pick a user via `sdk.directory`, grant `editor`/`viewer`, writes `shopper_list_shares`; owner can revoke (SHP-09). | T-02 | ✅ (search-and-add built on `SuggestionInput`, not a hand-rolled results list — no new `@sovereignfs/ui` component needed; owner-only, upserts on the (list_id, user_id) unique index so re-sharing with a different role just updates it) |
+| T-11 | v0.1 hardening pass: owner/share-scoping test sweep (a viewer cannot write, a non-shared user cannot see the list), tenant-scoping sweep across all `shopper_*` tables, empty-state and revoke-share edge cases. | T-03, T-09, T-10 | ✅ (fixed a latent bug found in the audit: `renameList`/`archiveList` scoped their UPDATE by `owner_user_id` in the WHERE clause alone, so a non-owner's call matched zero rows and returned as a silent no-op instead of throwing, unlike every other mutating action — now use the same `getList()` + role-check pattern as the rest; 42 tests added across `app/_lib/__tests__/access-control.test.ts`, `tenant-scoping.test.ts`, `edge-cases.test.ts`, see CLAUDE.md for the testing approach) |
 
 **v0.1 is feature-complete after T-11 — this is the deliverable for the
 current build request.**
+
+**Mobile shell (ad hoc, not a numbered SHP requirement):** ported
+sovereign-tasks' swipeable scroll-snap carousel pattern — `MobileAwareShell`
+forks desktop (unchanged two-pane grid) vs. mobile (`MobileShopperCarousel`)
+at the platform's canonical 768px breakpoint. Slide 0 is the list-switcher
+(`Sidebar`, reused as-is); slide *n* is list *n* (`ListPane`, extracted from
+`lists/[listId]/page.tsx` so both the desktop route and the carousel render
+the same component off server- vs. client-fetched props); the trailing slide
+is the read-only Combined view (`CombinedPane`, same extraction from
+`combined/page.tsx`), present only once there are 2+ accessible lists. See
+CLAUDE.md's "Mobile shell" section for the full architecture and the
+swipe-direction/combined-view-placement/breakpoint decisions.
 
 ---
 

@@ -23,6 +23,7 @@ export default function Sidebar({ lists, sharedLists }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [archiveTarget, setArchiveTarget] = useState<ListRow | null>(null);
+  const [adding, setAdding] = useState(false);
   const [pending, startTransition] = useTransition();
   const renameInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,7 +66,21 @@ export default function Sidebar({ lists, sharedLists }: Props) {
 
       <div className={styles.sectionHeader}>
         <span className={styles.sectionLabel}>My lists</span>
+        <button
+          type="button"
+          className={styles.newListButton}
+          aria-label="New list"
+          onClick={() => setAdding(true)}
+        >
+          <Icon name="plus" size="sm" aria-hidden />
+        </button>
       </div>
+
+      {adding && (
+        <div className={styles.newListRow}>
+          <CreateListForm variant="inline" open={adding} onOpenChange={setAdding} />
+        </div>
+      )}
 
       <ul className={styles.list}>
         {lists.map((list) => {
@@ -121,11 +136,7 @@ export default function Sidebar({ lists, sharedLists }: Props) {
         })}
       </ul>
 
-      <div className={styles.newListRow}>
-        <CreateListForm variant="inline" />
-      </div>
-
-      <div className={styles.sectionHeader}>
+      <div className={`${styles.sectionHeader} ${styles.sectionHeaderSpaced}`}>
         <span className={styles.sectionLabel}>Shared with me</span>
       </div>
 

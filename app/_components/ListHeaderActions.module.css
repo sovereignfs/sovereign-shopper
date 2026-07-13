@@ -3,6 +3,31 @@
   gap: var(--sv-space-2);
 }
 
+/* Mobile's `⋯` Menu trigger — same treatment as sovereign-tasks'
+   TasksPane.module.css .menuBtn, for visual consistency between the two
+   plugins' list-options menus. */
+.menuBtn {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sv-radius-sm);
+  color: var(--sv-color-text-subtle);
+  cursor: pointer;
+}
+
+.menuBtn:hover {
+  background: var(--sv-color-surface-sunken);
+  color: var(--sv-color-text-primary);
+}
+
+.menuBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Mirrors @sovereignfs/ui's Input styling — see CreateListForm.module.css
    for why a native <input> is used instead of the Input component here. */
 .renameInput {

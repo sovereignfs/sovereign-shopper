@@ -141,15 +141,47 @@ data without a plan risks a destructive migration.
   href="?item=...">` in the row's `trailing` slot (`ItemRow.tsx`) — rather
   than sharing the row click the way T-07 originally wired it (fixed as part
   of T-08, since T-08 is what defines the row-tap interaction per SPEC.md).
-- **Manual reorder (SHP-08, T-09) is up/down buttons, not drag.** SPEC only
-  requires "manual reorder (sort_order)" — it doesn't mandate drag-and-drop.
-  Up/down chevrons in `ItemRow.tsx`'s trailing slot swap `sort_order` with
-  the adjacent item **within the same category group** (`swapItemOrder` in
-  actions.ts), not the whole list — dragging across a category boundary has
-  no defined "change category" semantics, so reorder only ever happens
-  inside one group. This avoids pulling in `dnd-kit` (as `sovereign-tasks`
-  does) purely for this; drag can still be added later as a UX polish pass
-  without changing `swapItemOrder`'s contract.
+- **Manual reorder (SHP-08) is drag-and-drop, not up/down buttons** — the
+  original chevron-button version (T-09) didn't work reliably in practice
+  and was replaced with `dnd-kit` (`@dnd-kit/core`, `@dnd-kit/sortable`,
+  `@dnd-kit/utilities`), matching `sovereign-tasks`' identical drag-reorder
+  pattern (`dndSensors.ts`'s `useReorderSensors`, `GripIcon.tsx` — both
+  copied verbatim from that plugin, neither is `@sovereignfs/ui`-exported).
+  **Each category group mounts its own independent `DndContext`** (unique
+  `id` prop per group, e.g. `` `shopper-items-${category}` ``) wrapping a
+  `SortableContext` scoped to just that group's item ids — items still can't
+  cross a category boundary, same invariant the buttons enforced, but now
+  it's structural (dnd-kit's collision detection only sees ids registered to
+  the `SortableContext` a drag started in) rather than a UI affordance
+  choice.
+  - The drag handle (`GripIcon`, `ItemRow.tsx`'s trailing slot) is the only
+    element carrying `{...attributes} {...listeners}` — **not** whole-row
+    drag like `TaskItem`'s. `CheckableListRow`'s entire row is this
+    plugin's primary tap-to-buy target (SHP-07); forwarding drag listeners
+    onto it would compete with that core interaction, unlike Tasks' small
+    `Checkbox`. This also means no `data-no-dnd` markers are needed
+    anywhere in the row.
+  - `ItemRow` owns its own `<li>` (not the parent `.map()`) — `useSortable`'s
+    ref/transform-style has to attach to the actual sortable DOM node.
+  - **`reorderItems(listId, orderedIds)` (`actions.ts`) is not a straight
+    port of Tasks' `reorderTasks`.** Tasks renumbers its dragged array to
+    `0..n`, which works because `tasks_items.sort_order` has no cross-list
+    grouping concern. Shopper's `sort_order` is one flat column shared
+    across the *whole list*, and `groupItemsByCategory` derives each
+    category *section's* position by comparing categories' first-item
+    `sort_order` — renumbering a dragged category to `0..n` would collide
+    with every other category's values and scramble which section renders
+    first. `reorderItems` instead fetches the `sort_order` values that
+    `orderedIds` already occupies, sorts them, and reassigns them in the
+    new order — the same permutation-not-renumbering invariant the old
+    `swapItemOrder` (a pure two-item slot swap) already relied on,
+    generalized to N items. Bails out with no partial write if any id in
+    `orderedIds` doesn't resolve to a row on the list (a stale id from a
+    concurrent edit elsewhere).
+  - Optimistic UI is `useOptimistic(items, itemsReducer)` in `ListPane.tsx`
+    over the *full* item array (active + bought) — the `'reorder'` action
+    splices a category's reordered subset back in, same technique
+    `TasksPane`'s `tasksReducer` uses.
 - **Category groups derive from `groupItemsByCategory`** (`app/_lib/group.ts`,
   pure, no DB access) — groups order by first-appearance in `sort_order`,
   with "Uncategorized" (`category: null`) always sorted last regardless of
@@ -189,6 +221,78 @@ membership (Phase 2) will grant *implicit* access to a household's default
 list; `shopper_list_shares` continues to exist unchanged as the mechanism for
 sharing a list *beyond* that membership.
 
+## Mobile shell
+
+Below 768px (the platform's canonical `MOBILE_BREAKPOINT_PX`, via
+`@sovereignfs/ui`'s `useIsMobile()` — **not** a plugin-local override) the
+plugin renders a completely different component tree, ported directly from
+sovereign-tasks' identical pattern (see that plugin's own CLAUDE.md "Mobile
+shell" section for the fuller original rationale; only Shopper-specific
+deltas are called out below). `layout.tsx` delegates to
+`app/_components/MobileAwareShell.tsx`, which on mobile mounts
+`MobileShopperCarousel.tsx` instead of rendering `children` (the routed
+page's server output) at all.
+
+- **Carousel model**: slide 0 is `Sidebar` full-page (reused unchanged from
+  desktop); slide *n* (1 ≤ n ≤ number of accessible lists) is that list,
+  owned lists first then shared — same order as the desktop `Sidebar`. A
+  trailing **Combined view** slide (`CombinedPane`) is appended only once
+  there are 2+ accessible lists, matching the desktop Sidebar's own
+  "Combined view — available once you have 2+ lists" gating. A native
+  `scroll-snap-type: x` container gives swipe physics for free, no hand-
+  rolled pointer dragging. **Swiping right (finger left→right) reveals the
+  previous slide** (toward the Lists index); swiping left advances toward
+  the next list, then the Combined view — same convention as sovereign-tasks,
+  chosen deliberately for behavioral consistency between the two plugins.
+  Unlike Tasks, there's no "land on the Lists index, not the first list"
+  special case to handle: `page.tsx`'s existing SHP-03 redirect
+  (`getLastListId`/first-accessible fallback) already lands the user on a
+  concrete `/shopper/lists/[id]` route server-side, before the carousel ever
+  mounts — so the carousel's `indexForPathname` has no bare-`/shopper` case
+  in practice.
+- **Shared render components, not shared data-fetching**: `ListPane`
+  (`app/lists/[listId]/ListPane.tsx`) and `CombinedPane`
+  (`app/combined/CombinedPane.tsx`) are the extracted presentation bodies of
+  `lists/[listId]/page.tsx` and `combined/page.tsx` respectively — pure
+  props-in components with no data-fetching of their own. The desktop route
+  fetches server-side and renders them; `MobileShopperCarousel` fetches the
+  same already-exported `'use server'` actions (`getList`, `getListItems`,
+  `getListItemDetail`, `getCombinedItems`) client-side per slide, caches per
+  list id, and eagerly prefetches `activeIndex ± 1` so a swipe never shows a
+  spinner — same decoupled-data strategy as sovereign-tasks'
+  `MobileTasksCarousel`, for the same reason (a real prop-threaded
+  alternative would force a remount on every swipe-triggered navigation).
+- **`setLastList` moves into the carousel itself**: on desktop this is
+  called from `lists/[listId]/page.tsx` on every visit (SHP-03). The mobile
+  carousel bypasses that route entirely, so it calls `setLastList` itself
+  whenever the settled slide is a real list (not the index or Combined
+  slide) — the one genuinely new piece of state-keeping this port needed
+  that sovereign-tasks has no equivalent of (Tasks has no "last opened
+  list" concept).
+- **No `Sheet` wrapper needed for item editing** — unlike Tasks' task-detail
+  pane (which needed a hand-wrapped `Sheet` because it supplies its own
+  custom header), `ItemEditDialog` is already `@sovereignfs/ui`'s `Dialog`,
+  which auto-adapts to a full-screen overlay on mobile per its own doc
+  comment. `MobileShopperCarousel` fetches `getListItemDetail` client-side
+  keyed on the active slide + `?item=` param and passes it straight through
+  to `ListPane`'s existing `editingItem` prop — no new overlay-management
+  code required.
+- **`router.refresh()` still works**: `MobileAwareShell` passes `children`
+  through to the carousel as `refreshSignal` — not to render, purely as a
+  signal. Every mutating component under `app/_components/` already calls
+  `router.refresh()` on success (`AddItemBar`, `ItemRow`, `ItemEditDialog`,
+  `BoughtSection`, `ListHeaderActions`, `Sidebar`, `CreateListForm`), so none
+  of them needed touching for this port.
+- **Settled-slide detection is a debounced `scroll` listener**, not the
+  `scrollend` event — same pre-17.4 iOS Safari/WKWebView compatibility
+  reasoning as sovereign-tasks.
+- **Known pre-existing issue, not introduced by this port**: `PageHeader`'s
+  title and `ListHeaderActions`' Share/Rename/Archive buttons overlap at
+  narrow (~375px) widths — this is a `ListPane`/`PageHeader` layout gap that
+  already existed under the old CSS-stacked mobile fallback this port
+  replaced; worth a follow-up pass, out of scope here since it's unrelated
+  to swipe navigation itself.
+
 ## Versioning
 
 This plugin follows its own semver, independent of the platform version:
@@ -210,6 +314,47 @@ pnpm dev   # starts runtime on :3000; plugin routes are available at /shopper
 
 When porting to the standalone `sovereign-shopper` repo, the plugin is
 installed via `sv plugin add` and the platform hot-reloads it.
+
+## Testing (`app/_lib/__tests__/`)
+
+`pnpm test` runs Vitest against `app/_lib/**/__tests__/**/*.test.ts`
+(`vitest.config.ts`). Server actions are tested by mocking `@sovereignfs/sdk`
+directly — `vi.mock('@sovereignfs/sdk', ...)` with `sdk.db.getClient`
+resolving a hand-rolled `fakeDb` that implements just enough of Drizzle's
+chainable `select().from().where()/.innerJoin()/.orderBy()/.limit()`,
+`insert().values()/.onConflictDoUpdate()`, `update().set().where()`,
+`delete().where()` shape to run real action code, routed by table name via
+`getTableName()` from `drizzle-orm`. This is the same pattern
+`sovereign-plainwrite`'s test suite already established — kept consistent
+across the plugin family rather than introducing a different mocking style
+here.
+
+**This fake never evaluates WHERE predicates** — it routes purely by table
+name (and, where a test needs to distinguish two same-table queries in one
+action, by call order). That's enough for role/access-rejection tests
+(`access-control.test.ts`: a viewer's write throws, a non-shared user's
+`getList()` resolves `null`) and empty-state/revoke tests
+(`edge-cases.test.ts`), but it means a naive version of this fake *cannot*
+catch a regression that silently drops `eq(table.tenantId, tenantId)` from a
+query — the fake would return the same canned rows regardless. To make the
+tenant-scoping sweep (`tenant-scoping.test.ts`) an actual regression trap, its
+fake instead **captures the condition object** passed to `.where()`/
+`update().set().where()`/`.delete().where()` (or the values object passed to
+`.insert().values()`) and walks it to confirm a `tenant_id`-named column (or
+`tenantId` value) is really referenced — see that file's
+`referencedColumnNames()` helper and its doc comment for why the walk must
+skip a column's circular `.table` back-reference (it holds every sibling
+column too, which would otherwise produce false negatives).
+
+**Bug found and fixed by this sweep (T-11):** `renameList` and `archiveList`
+used to scope their `UPDATE ... WHERE` by `eq(shopper_lists.owner_user_id,
+userId)` directly instead of the `getList()` + role-check pattern every other
+mutating action in `actions.ts` uses. A non-owner's call matched zero rows and
+returned successfully as a silent no-op instead of throwing — inconsistent
+with the rest of the file and impossible to distinguish from success in the
+UI. Both now call `getList()` first and throw `'Only the owner can
+rename/archive this list.'` for any non-owner role, same as
+`shareList`/`revokeShare`.
 
 ## Open questions (from SPEC.md and UI.md)
 

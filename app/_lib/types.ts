@@ -55,6 +55,21 @@ export interface SharedListRow {
   ownerName: string;
 }
 
+/** A row in the share dialog's "People with access" list (SHP-09, T-10). */
+export interface ListShareRow {
+  userId: string;
+  name: string;
+  email: string;
+  role: 'editor' | 'viewer';
+}
+
+/** A matched user from the share dialog's search box (SHP-09, T-10). */
+export interface DirectoryUserRow {
+  id: string;
+  name: string;
+  email: string;
+}
+
 /** One item in the read-only combined roll-up (SHP-02) — a shopper_list_items
  *  row plus which list it came from, so the combined view can tag it. Always
  *  empty until item CRUD (T-05+) ships; the read path is ready ahead of it. */

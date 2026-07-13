@@ -15,9 +15,11 @@ import {
 import { suggestCategoryAndIcon } from './icons';
 import type {
   CombinedItemRow,
+  DirectoryUserRow,
   ListItemDetail,
   ListItemRow,
   ListRow,
+  ListShareRow,
   ProductSuggestion,
   SharedListRow,
 } from './types';
@@ -230,35 +232,38 @@ export async function createList(name: string): Promise<string> {
   return id;
 }
 
+/** Owner-only (SHP-01). Was previously scoped by `owner_user_id` in the
+ *  UPDATE's WHERE clause alone — a non-owner's call matched zero rows and
+ *  returned as a silent no-op instead of an explicit error, inconsistent
+ *  with every other mutating action here. Fixed in T-11's hardening pass to
+ *  use the same explicit getList() + role check pattern as the rest. */
 export async function renameList(listId: string, name: string): Promise<void> {
   const trimmed = name.trim();
   if (!trimmed) throw new Error('List name is required.');
 
-  const { db, userId, tenantId } = await getContext();
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role !== 'owner') throw new Error('Only the owner can rename this list.');
+
+  const { db, tenantId } = await getContext();
   await db
     .update(shopperLists)
     .set({ name: trimmed, updatedAt: now() })
-    .where(
-      and(
-        eq(shopperLists.id, listId),
-        eq(shopperLists.tenantId, tenantId),
-        eq(shopperLists.ownerUserId, userId),
-      ),
-    );
+    .where(and(eq(shopperLists.id, listId), eq(shopperLists.tenantId, tenantId)));
 }
 
+/** Owner-only (SHP-01). See renameList's doc comment — same silent-no-op
+ *  bug, same T-11 fix. */
 export async function archiveList(listId: string): Promise<void> {
-  const { db, userId, tenantId } = await getContext();
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role !== 'owner') throw new Error('Only the owner can archive this list.');
+
+  const { db, tenantId } = await getContext();
   await db
     .update(shopperLists)
     .set({ archivedAt: now(), updatedAt: now() })
-    .where(
-      and(
-        eq(shopperLists.id, listId),
-        eq(shopperLists.tenantId, tenantId),
-        eq(shopperLists.ownerUserId, userId),
-      ),
-    );
+    .where(and(eq(shopperLists.id, listId), eq(shopperLists.tenantId, tenantId)));
 }
 
 /** Items on a list, in manual order (SHP-04/06/07/08). Access-checked —
@@ -637,17 +642,24 @@ export async function clearBoughtItems(listId: string): Promise<void> {
     .where(and(inArray(shopperListItems.id, boughtIds), eq(shopperListItems.tenantId, tenantId)));
 }
 
-/** Swaps two items' manual order (SHP-08) — the caller (the grouped list
- *  view) determines which two ids are adjacent within a category group;
- *  this just exchanges their `sort_order` values. */
-export async function swapItemOrder(
-  listId: string,
-  itemIdA: string,
-  itemIdB: string,
-): Promise<void> {
+/** Reorders items within a category group (SHP-08, drag-and-drop) — the
+ *  caller (the grouped list view) determines the group's new id order; this
+ *  reassigns the *same set* of `sort_order` values that set of ids already
+ *  occupies, permuted into the new order, rather than renumbering from 0.
+ *  That's deliberate: `sort_order` is one flat column shared across the
+ *  whole list, not scoped per category — `groupItemsByCategory` derives
+ *  each category *section's* position from comparing categories' first-item
+ *  `sort_order`, so renumbering a dragged category's items to 0..n would
+ *  collide with every other category's values and scramble which section
+ *  renders first. Reassigning existing slots leaves every item outside
+ *  `orderedIds` completely untouched. Bails out (no partial write) if any
+ *  id doesn't resolve to a row on this list — a stale id from a concurrent
+ *  edit elsewhere. */
+export async function reorderItems(listId: string, orderedIds: string[]): Promise<void> {
   const list = await getList(listId);
   if (!list) throw new Error('List not found.');
   if (list.role === 'viewer') throw new Error("You don't have permission to edit this list.");
+  if (orderedIds.length < 2) return;
 
   const { db, tenantId } = await getContext();
   const rows = await db
@@ -655,21 +667,100 @@ export async function swapItemOrder(
     .from(shopperListItems)
     .where(
       and(
-        inArray(shopperListItems.id, [itemIdA, itemIdB]),
+        inArray(shopperListItems.id, orderedIds),
         eq(shopperListItems.listId, listId),
         eq(shopperListItems.tenantId, tenantId),
       ),
     );
-  const a = rows.find((r) => r.id === itemIdA);
-  const b = rows.find((r) => r.id === itemIdB);
-  if (!a || !b) return;
+  if (rows.length !== orderedIds.length) return;
 
+  const slots = rows.map((r) => r.sortOrder).sort((a, b) => a - b);
+  await Promise.all(
+    orderedIds.map((id, i) =>
+      db
+        .update(shopperListItems)
+        .set({ sortOrder: slots[i] })
+        .where(and(eq(shopperListItems.id, id), eq(shopperListItems.tenantId, tenantId))),
+    ),
+  );
+}
+
+/** Search box results for the share dialog (SHP-09, T-10) — a thin wrapper
+ *  around sdk.directory.searchUsers so the client component never imports
+ *  the SDK directly. */
+export async function searchDirectoryUsers(query: string): Promise<DirectoryUserRow[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+  await sdk.auth.requireSession();
+  const results = await sdk.directory.searchUsers({ query: trimmed, limit: 8 });
+  return results.map((u) => ({ id: u.id, name: u.name ?? u.email, email: u.email }));
+}
+
+/** Current shares for a list — the share dialog's "People with access" list
+ *  (SHP-09, T-10). Owner-only; returns [] for anyone else rather than
+ *  throwing, since the dialog itself is never shown to a non-owner. */
+export async function getListShares(listId: string): Promise<ListShareRow[]> {
+  const list = await getList(listId);
+  if (!list || list.role !== 'owner') return [];
+
+  const { db, tenantId } = await getContext();
+  const rows = await db
+    .select()
+    .from(shopperListShares)
+    .where(and(eq(shopperListShares.listId, listId), eq(shopperListShares.tenantId, tenantId)));
+  if (rows.length === 0) return [];
+
+  const users = await sdk.directory.resolveUsers({ ids: rows.map((r) => r.userId) });
+  const userById = new Map(users.map((u) => [u.id, u]));
+
+  return rows.map((r) => {
+    const user = userById.get(r.userId);
+    return {
+      userId: r.userId,
+      name: user?.name ?? user?.email ?? 'Unknown user',
+      email: user?.email ?? '',
+      role: r.role === 'editor' ? 'editor' : 'viewer',
+    };
+  });
+}
+
+/** Grants (or updates) a share (SHP-09, T-10). Owner-only — an editor
+ *  cannot re-share a list they were only given editor access to. Upserts on
+ *  the (list_id, user_id) unique index, so sharing again with a different
+ *  role just changes it rather than erroring on a duplicate. */
+export async function shareList(
+  listId: string,
+  userId: string,
+  role: 'editor' | 'viewer',
+): Promise<void> {
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role !== 'owner') throw new Error('Only the owner can share this list.');
+
+  const { db, tenantId } = await getContext();
   await db
-    .update(shopperListItems)
-    .set({ sortOrder: b.sortOrder })
-    .where(eq(shopperListItems.id, a.id));
+    .insert(shopperListShares)
+    .values({ id: randomUUID(), tenantId, listId, userId, role, createdAt: now() })
+    .onConflictDoUpdate({
+      target: [shopperListShares.listId, shopperListShares.userId],
+      set: { role },
+    });
+}
+
+/** Revokes a share (SHP-09, T-10). Owner-only. */
+export async function revokeShare(listId: string, userId: string): Promise<void> {
+  const list = await getList(listId);
+  if (!list) throw new Error('List not found.');
+  if (list.role !== 'owner') throw new Error('Only the owner can manage sharing.');
+
+  const { db, tenantId } = await getContext();
   await db
-    .update(shopperListItems)
-    .set({ sortOrder: a.sortOrder })
-    .where(eq(shopperListItems.id, b.id));
+    .delete(shopperListShares)
+    .where(
+      and(
+        eq(shopperListShares.listId, listId),
+        eq(shopperListShares.userId, userId),
+        eq(shopperListShares.tenantId, tenantId),
+      ),
+    );
 }

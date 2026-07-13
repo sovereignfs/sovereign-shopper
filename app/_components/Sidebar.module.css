@@ -16,7 +16,17 @@
 }
 
 .sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 0 var(--sv-space-4) var(--sv-space-2);
+}
+
+/* "Shared with me" only — separates it from "My lists"'s own items right
+   above it; "My lists" itself needs no extra top space, it already follows
+   the wordmark's own margin. */
+.sectionHeaderSpaced {
+  margin-top: var(--sv-space-6);
 }
 
 .sectionLabel {
@@ -27,6 +37,26 @@
   color: var(--sv-color-text-subtle);
 }
 
+/* Matches sovereign-tasks' ListSidebar "New list" trigger — click reveals
+   CreateListForm's plain input above the list (see Sidebar.tsx's `adding`
+   state), rather than a persistent input row taking up space at all times. */
+.newListButton {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sv-radius-sm);
+  color: var(--sv-color-text-subtle);
+  cursor: pointer;
+}
+
+.newListButton:hover {
+  background: var(--sv-color-surface-sunken);
+  color: var(--sv-color-text-primary);
+}
+
 .list {
   list-style: none;
   margin: 0;
@@ -34,14 +64,18 @@
 }
 
 .item {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--sv-space-2);
   padding: 0 var(--sv-space-3);
 }
 
+/* `.rowActions` is positioned absolutely (see below) instead of sitting
+   beside `.link` as a flex sibling — a flex sibling would reserve its own
+   width even while invisible (opacity: 0 pre-hover), which kept `.link`'s
+   background highlight from ever reaching the row's right edge. */
 .link {
-  flex: 1;
+  width: 100%;
   min-width: 0;
   padding: var(--sv-space-2) var(--sv-space-2);
   border-radius: var(--sv-radius-md);
@@ -85,8 +119,12 @@
 }
 
 .rowActions {
+  position: absolute;
+  right: var(--sv-space-2);
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
-  gap: var(--sv-space-1);
+  gap: 2px;
   opacity: 0;
   transition: opacity 0.1s ease;
 }
@@ -96,13 +134,17 @@
   opacity: 1;
 }
 
+/* Smaller than `--sv-touch-target-min`: these are desktop hover-only
+   affordances (opacity: 0 until `:hover`/`:focus-within`, which touch input
+   never triggers), not a touch target, so the 44px minimum doesn't apply —
+   using it here just inflated the visual gap between the two icons. */
 .rowAction {
   all: unset;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--sv-touch-target-min);
-  height: var(--sv-touch-target-min);
+  width: 28px;
+  height: 28px;
   border-radius: var(--sv-radius-sm);
   color: var(--sv-color-text-subtle);
   cursor: pointer;

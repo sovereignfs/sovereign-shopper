@@ -1,3 +1,21 @@
+/* Moved from page.module.css — ItemRow now owns its own <li>, since dnd-kit's
+   useSortable ref/transform-style has to attach to the actual sortable DOM
+   node, not a wrapper the parent's .map() renders on its behalf. Flex row so
+   the drag handle sits at the leading edge, outside CheckableListRow (whose
+   own leading slot is already the grocery item icon). */
+.item {
+  display: flex;
+  align-items: center;
+  padding: var(--sv-space-1) 0;
+  border-bottom: 1px solid var(--sv-color-border);
+}
+
+/* Lets CheckableListRow fill the remaining row width next to the handle. */
+.row {
+  flex: 1;
+  min-width: 0;
+}
+
 .trailing {
   display: flex;
   align-items: center;
@@ -23,7 +41,7 @@
   color: var(--sv-color-text-primary);
 }
 
-.moveButton {
+.dragHandle {
   all: unset;
   display: flex;
   align-items: center;
@@ -31,14 +49,16 @@
   width: var(--sv-touch-target-min);
   height: var(--sv-touch-target-min);
   color: var(--sv-color-text-subtle);
-  cursor: pointer;
+  cursor: grab;
+  /* Required so TouchSensor's pointer tracking isn't fighting the browser's
+     own native touch-scroll/carousel-swipe gesture on this element. */
+  touch-action: none;
 }
 
-.moveButton:hover:not(:disabled) {
+.dragHandle:hover {
   color: var(--sv-color-text-primary);
 }
 
-.moveButton:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
+.dragHandle:active {
+  cursor: grabbing;
 }
