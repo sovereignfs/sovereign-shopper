@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@sovereignfs/ui';
+import { Button, useCommitOnEnterOrBlur } from '@sovereignfs/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { createList } from '../_lib/actions';
@@ -16,9 +16,10 @@ interface Props {
   /** Controlled open state — omit to let the component manage its own.
    *  Sidebar's header "+" button controls this externally (sovereign-tasks'
    *  ListSidebar pattern: click "+", a plain input appears above the list,
-   *  Enter creates and collapses it again, Escape/blur-while-empty cancels)
-   *  so nothing here renders its own trigger button when controlled — the
-   *  caller owns that. */
+   *  Enter or losing focus with a non-empty name creates and collapses it
+   *  again (useCommitOnEnterOrBlur — see below), Escape/blur-while-empty
+   *  cancels) so nothing here renders its own trigger button when
+   *  controlled — the caller owns that. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -59,6 +60,13 @@ export default function CreateListForm({
     });
   }
 
+  // Losing focus for any reason (including iOS's native keyboard-accessory
+  // Done/checkmark, which fires a blur but no keydown, unlike the form's
+  // own Enter-triggered onSubmit) commits the same as Enter — see the
+  // hook's own doc comment. submit() already no-ops on an empty name, so
+  // this is always safe to call.
+  const commitHandlers = useCommitOnEnterOrBlur(() => submit());
+
   if (!open) {
     // A controlled instance never renders its own trigger — the caller
     // (Sidebar's header "+" button) owns that.
@@ -78,12 +86,14 @@ export default function CreateListForm({
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => {
+          commitHandlers.onKeyDown(e);
           if (e.key === 'Escape') {
             setName('');
             setOpen(false);
           }
         }}
         onBlur={() => {
+          commitHandlers.onBlur();
           if (!name.trim()) setOpen(false);
         }}
         placeholder="List name"
