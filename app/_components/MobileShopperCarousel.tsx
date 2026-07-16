@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import CombinedPane from '../combined/CombinedPane';
 import ListPane from '../lists/[listId]/ListPane';
 import {
@@ -63,7 +63,12 @@ export default function MobileShopperCarousel({ lists, sharedLists, refreshSigna
   // — see MobileTasksCarousel's identical flag for the full rationale.
   const isInternalNav = useRef(false);
 
-  const nav = navEntries(lists, sharedLists);
+  // Memoized so activeNavEntry (derived below) keeps a stable reference
+  // across re-renders that don't actually change the list set — otherwise
+  // every effect keyed on activeNavEntry (item-edit fetch, setLastList)
+  // would re-fire on every render, including its own state updates, causing
+  // an infinite fetch loop.
+  const nav = useMemo(() => navEntries(lists, sharedLists), [lists, sharedLists]);
   const hasCombined = nav.length >= 2;
   const combinedIndex = nav.length + 1;
 
