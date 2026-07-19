@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { getLists, getSharedLists } from './_lib/actions';
+import { registerPortabilityHandlers } from './_lib/portability';
 import MobileAwareShell from './_components/MobileAwareShell';
 
 /**
@@ -11,6 +12,16 @@ import MobileAwareShell from './_components/MobileAwareShell';
  * UI.md 6-9 — same pattern as sovereign-tasks' mobile shell.
  */
 export default async function ShopperLayout({ children }: { children: ReactNode }) {
+  // In-process and reset on restart — the platform SDK requires
+  // re-registering from a request-scoped plugin route, so this runs on
+  // every request. Best-effort: a registration failure must not block the
+  // plugin's own UI (matches sovereign-tasks' layout.tsx).
+  try {
+    await registerPortabilityHandlers();
+  } catch {
+    // Portability is a best-effort platform integration.
+  }
+
   const [lists, sharedLists] = await Promise.all([getLists(), getSharedLists()]);
 
   return (
